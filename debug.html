@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tetris Ultimate - Debug</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #0a0a0a;
+            color: #fff;
+            padding: 20px;
+        }
+        button {
+            background: #00ffcc;
+            border: none;
+            color: #000;
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        button:hover {
+            background: #00ddaa;
+        }
+        #log {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            padding: 10px;
+            margin-top: 20px;
+            height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .error { color: #ff6666; }
+        .success { color: #66ff66; }
+        .info { color: #6666ff; }
+    </style>
+</head>
+<body>
+    <h1>Tetris Ultimate - Debug Mode</h1>
+    
+    <div>
+        <button onclick="testModules()">Test Module Loading</button>
+        <button onclick="testGame()">Test Game Creation</button>
+        <button onclick="startSimpleGame()">Start Simple Game</button>
+        <button onclick="clearLog()">Clear Log</button>
+    </div>
+    
+    <div id="log"></div>
+    
+    <script type="module">
+        window.log = function(message, type = 'info') {
+            const logEl = document.getElementById('log');
+            const time = new Date().toLocaleTimeString();
+            logEl.innerHTML += `<div class="${type}">[${time}] ${message}</div>`;
+            logEl.scrollTop = logEl.scrollHeight;
+            console.log(message);
+        };
+        
+        window.testModules = async function() {
+            log('Testing module loading...', 'info');
+            
+            try {
+                const { Game } = await import('./src/game/Game.js');
+                log('✓ Game module loaded', 'success');
+                
+                const { Board } = await import('./src/game/Board.js');
+                log('✓ Board module loaded', 'success');
+                
+                const { Piece } = await import('./src/game/Piece.js');
+                log('✓ Piece module loaded', 'success');
+                
+                const { ParticleSystem } = await import('./src/graphics/ParticleSystem.js');
+                log('✓ ParticleSystem module loaded', 'success');
+                
+                const { Renderer } = await import('./src/graphics/Renderer.js');
+                log('✓ Renderer module loaded', 'success');
+                
+                log('All modules loaded successfully!', 'success');
+            } catch (error) {
+                log(`Module loading error: ${error.message}`, 'error');
+                log(error.stack, 'error');
+            }
+        };
+        
+        window.testGame = async function() {
+            log('Testing game creation...', 'info');
+            
+            try {
+                // Create minimal game container
+                if (!document.getElementById('game-canvas')) {
+                    const canvas = document.createElement('canvas');
+                    canvas.id = 'game-canvas';
+                    canvas.width = 300;
+                    canvas.height = 600;
+                    canvas.style.border = '2px solid #00ffcc';
+                    document.body.appendChild(canvas);
+                    log('Created game canvas', 'info');
+                }
+                
+                const { Board } = await import('./src/game/Board.js');
+                const board = new Board();
+                log(`✓ Board created: ${board.width}x${board.height}`, 'success');
+                
+                const { Piece } = await import('./src/game/Piece.js');
+                const piece = new Piece('T');
+                log(`✓ Piece created: Type ${piece.type}`, 'success');
+                
+                const { PieceQueue } = await import('./src/game/PieceQueue.js');
+                const queue = new PieceQueue();
+                log(`✓ PieceQueue created with ${queue.queue.length} pieces`, 'success');
+                
+                log('Basic game components working!', 'success');
+            } catch (error) {
+                log(`Game creation error: ${error.message}`, 'error');
+                log(error.stack, 'error');
+            }
+        };
+        
+        window.startSimpleGame = async function() {
+            log('Starting simple game...', 'info');
+            
+            try {
+                // Create UI elements
+                const gameContainer = document.createElement('div');
+                gameContainer.innerHTML = `
+                    <canvas id="game-canvas" width="300" height="600" style="border: 2px solid #00ffcc;"></canvas>
+                    <canvas id="particles-canvas" width="300" height="600" style="display:none;"></canvas>
+                    <div id="score">0</div>
+                    <div id="level">1</div>
+                    <div id="lines">0</div>
+                    <div id="ppm">0</div>
+                    <div id="apm">0</div>
+                    <div id="tspins">0</div>
+                    <div id="combo">0</div>
+                    <canvas id="hold-canvas" width="120" height="120" style="display:none;"></canvas>
+                    <canvas id="next-0" width="100" height="60" style="display:none;"></canvas>
+                    <canvas id="next-1" width="80" height="48" style="display:none;"></canvas>
+                    <canvas id="next-2" width="80" height="48" style="display:none;"></canvas>
+                    <canvas id="next-3" width="80" height="48" style="display:none;"></canvas>
+                    <canvas id="next-4" width="80" height="48" style="display:none;"></canvas>
+                    <div id="action-log" style="display:none;"></div>
+                    <div id="combo-display" style="display:none;"></div>
+                    <div class="game-timer" style="display:none;">00:00</div>
+                `;
+                document.body.appendChild(gameContainer);
+                
+                // Import required modules
+                const { Game } = await import('./src/game/Game.js');
+                const { Renderer } = await import('./src/graphics/Renderer.js');
+                const { ParticleSystem } = await import('./src/graphics/ParticleSystem.js');
+                const { InputManager } = await import('./src/input/InputManager.js');
+                const { SettingsManager } = await import('./src/managers/SettingsManager.js');
+                const { SoundManager } = await import('./src/audio/SoundManager.js');
+                
+                log('All modules imported', 'success');
+                
+                // Create minimal game instance
+                const game = new Game({
+                    mode: 'single',
+                    renderer: new Renderer(),
+                    soundManager: { 
+                        playSound: () => {}, 
+                        playGameMusic: () => {},
+                        stopGameMusic: () => {}
+                    },
+                    particleSystem: new ParticleSystem(),
+                    inputManager: new InputManager(),
+                    settingsManager: { 
+                        get: (key) => {
+                            const defaults = { ghostEnabled: true, gridEnabled: true, particlesEnabled: true };
+                            return defaults[key];
+                        }
+                    },
+                    networkManager: null,
+                    onGameOver: (stats) => {
+                        log(`Game Over! Score: ${stats.score}`, 'info');
+                    }
+                });
+                
+                log('Game instance created', 'success');
+                
+                // Start the game
+                game.start();
+                log('Game started!', 'success');
+                
+            } catch (error) {
+                log(`Simple game error: ${error.message}`, 'error');
+                log(error.stack, 'error');
+            }
+        };
+        
+        window.clearLog = function() {
+            document.getElementById('log').innerHTML = '';
+        };
+        
+        // Auto-test on load
+        setTimeout(() => {
+            log('Debug mode ready', 'info');
+            testModules();
+        }, 500);
+    </script>
+</body>
+</html>

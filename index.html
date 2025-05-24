@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tetris Ultimate - 究極のテトリス体験</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/animations.css">
+    <link rel="stylesheet" href="styles/responsive.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="loading-screen" class="loading-screen">
+        <div class="loader">
+            <div class="tetris-loader">
+                <div class="block"></div>
+                <div class="block"></div>
+                <div class="block"></div>
+                <div class="block"></div>
+            </div>
+            <p>Loading Ultimate Tetris...</p>
+        </div>
+    </div>
+
+    <div id="main-menu" class="main-menu hidden">
+        <div class="menu-container">
+            <h1 class="game-title">
+                <span class="title-main">TETRIS</span>
+                <span class="title-sub">ULTIMATE</span>
+            </h1>
+            
+            <div class="menu-buttons">
+                <button class="menu-button" data-mode="single">
+                    <span class="button-icon">🎮</span>
+                    <span class="button-text">シングルプレイ</span>
+                </button>
+                
+                <button class="menu-button" data-mode="multiplayer">
+                    <span class="button-icon">👥</span>
+                    <span class="button-text">マルチプレイヤー</span>
+                </button>
+                
+                <button class="menu-button" data-mode="ai-battle">
+                    <span class="button-icon">🤖</span>
+                    <span class="button-text">AI対戦</span>
+                </button>
+                
+                <button class="menu-button" data-mode="training">
+                    <span class="button-icon">📚</span>
+                    <span class="button-text">トレーニング</span>
+                </button>
+                
+                <button class="menu-button" data-action="leaderboard">
+                    <span class="button-icon">🏆</span>
+                    <span class="button-text">ランキング</span>
+                </button>
+                
+                <button class="menu-button" data-action="settings">
+                    <span class="button-icon">⚙️</span>
+                    <span class="button-text">設定</span>
+                </button>
+            </div>
+            
+            <div class="social-links">
+                <a href="#" class="social-link">Twitter</a>
+                <a href="#" class="social-link">Discord</a>
+                <a href="#" class="social-link">GitHub</a>
+            </div>
+        </div>
+    </div>
+
+    <div id="game-container" class="game-container hidden">
+        <div class="game-header">
+            <div class="player-info">
+                <img src="assets/avatar-default.png" alt="Player Avatar" class="player-avatar">
+                <span class="player-name">Player 1</span>
+            </div>
+            <div class="game-timer">00:00</div>
+            <button class="pause-button">⏸️</button>
+        </div>
+
+        <div class="game-content">
+            <div class="side-panel left-panel">
+                <div class="hold-container">
+                    <h3>HOLD</h3>
+                    <canvas id="hold-canvas" width="120" height="120"></canvas>
+                </div>
+                
+                <div class="stats-container">
+                    <div class="stat-item">
+                        <span class="stat-label">PPM</span>
+                        <span class="stat-value" id="ppm">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">APM</span>
+                        <span class="stat-value" id="apm">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">T-SPINS</span>
+                        <span class="stat-value" id="tspins">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">COMBO</span>
+                        <span class="stat-value" id="combo">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="main-game-area">
+                <canvas id="game-canvas" width="300" height="600"></canvas>
+                <canvas id="particles-canvas" width="300" height="600"></canvas>
+                <div class="combo-display hidden" id="combo-display">
+                    <span class="combo-text">COMBO</span>
+                    <span class="combo-count">0</span>
+                </div>
+            </div>
+
+            <div class="side-panel right-panel">
+                <div class="next-container">
+                    <h3>NEXT</h3>
+                    <div class="next-pieces">
+                        <canvas id="next-0" width="100" height="60"></canvas>
+                        <canvas id="next-1" width="80" height="48"></canvas>
+                        <canvas id="next-2" width="80" height="48"></canvas>
+                        <canvas id="next-3" width="80" height="48"></canvas>
+                        <canvas id="next-4" width="80" height="48"></canvas>
+                    </div>
+                </div>
+                
+                <div class="score-container">
+                    <div class="score-item">
+                        <span class="score-label">SCORE</span>
+                        <span class="score-value" id="score">0</span>
+                    </div>
+                    <div class="score-item">
+                        <span class="score-label">LEVEL</span>
+                        <span class="score-value" id="level">1</span>
+                    </div>
+                    <div class="score-item">
+                        <span class="score-label">LINES</span>
+                        <span class="score-value" id="lines">0</span>
+                    </div>
+                </div>
+                
+                <div class="action-log" id="action-log">
+                    <!-- Dynamic action messages -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="settings-modal" class="modal hidden">
+        <div class="modal-content">
+            <h2>設定</h2>
+            
+            <div class="settings-section">
+                <h3>グラフィックス</h3>
+                <label class="setting-item">
+                    <span>パーティクルエフェクト</span>
+                    <input type="checkbox" id="particles-enabled" checked>
+                </label>
+                <label class="setting-item">
+                    <span>ゴーストピース</span>
+                    <input type="checkbox" id="ghost-enabled" checked>
+                </label>
+                <label class="setting-item">
+                    <span>グリッド表示</span>
+                    <input type="checkbox" id="grid-enabled" checked>
+                </label>
+            </div>
+            
+            <div class="settings-section">
+                <h3>サウンド</h3>
+                <label class="setting-item">
+                    <span>BGM音量</span>
+                    <input type="range" id="bgm-volume" min="0" max="100" value="50">
+                </label>
+                <label class="setting-item">
+                    <span>効果音音量</span>
+                    <input type="range" id="sfx-volume" min="0" max="100" value="70">
+                </label>
+            </div>
+            
+            <div class="settings-section">
+                <h3>コントロール</h3>
+                <div class="controls-list">
+                    <div class="control-item">
+                        <span>左移動</span>
+                        <button class="key-bind" data-action="moveLeft">←</button>
+                    </div>
+                    <div class="control-item">
+                        <span>右移動</span>
+                        <button class="key-bind" data-action="moveRight">→</button>
+                    </div>
+                    <div class="control-item">
+                        <span>ソフトドロップ</span>
+                        <button class="key-bind" data-action="softDrop">↓</button>
+                    </div>
+                    <div class="control-item">
+                        <span>ハードドロップ</span>
+                        <button class="key-bind" data-action="hardDrop">Space</button>
+                    </div>
+                    <div class="control-item">
+                        <span>右回転</span>
+                        <button class="key-bind" data-action="rotateRight">↑</button>
+                    </div>
+                    <div class="control-item">
+                        <span>左回転</span>
+                        <button class="key-bind" data-action="rotateLeft">Z</button>
+                    </div>
+                    <div class="control-item">
+                        <span>ホールド</span>
+                        <button class="key-bind" data-action="hold">C</button>
+                    </div>
+                </div>
+            </div>
+            
+            <button class="close-button" onclick="closeSettings()">閉じる</button>
+        </div>
+    </div>
+
+    <div id="leaderboard-modal" class="modal hidden">
+        <div class="modal-content">
+            <h2>ランキング</h2>
+            
+            <div class="leaderboard-tabs">
+                <button class="tab-button active" data-tab="global">グローバル</button>
+                <button class="tab-button" data-tab="daily">デイリー</button>
+                <button class="tab-button" data-tab="friends">フレンド</button>
+            </div>
+            
+            <div class="leaderboard-list" id="leaderboard-list">
+                <!-- Dynamic leaderboard entries -->
+            </div>
+            
+            <button class="close-button" onclick="closeLeaderboard()">閉じる</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { TetrisUltimate } from './src/main.js';
+        
+        // Initialize the game when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            window.tetrisUltimate = new TetrisUltimate();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,408 @@
+/* Tablet styles */
+@media screen and (max-width: 1024px) {
+    .game-content {
+        gap: 20px;
+        padding: 15px;
+    }
+    
+    .side-panel {
+        gap: 15px;
+    }
+    
+    .hold-container,
+    .next-container,
+    .stats-container,
+    .score-container {
+        padding: 15px;
+    }
+    
+    #game-canvas {
+        width: 250px;
+        height: 500px;
+    }
+    
+    #particles-canvas {
+        width: 250px;
+        height: 500px;
+    }
+    
+    .title-main {
+        font-size: 4rem;
+    }
+    
+    .title-sub {
+        font-size: 1.5rem;
+    }
+    
+    .menu-buttons {
+        grid-template-columns: 1fr;
+        max-width: 400px;
+        margin: 0 auto 40px;
+    }
+}
+
+/* Mobile styles */
+@media screen and (max-width: 768px) {
+    body {
+        font-size: 14px;
+    }
+    
+    .game-container {
+        position: relative;
+        height: 100vh;
+    }
+    
+    .game-header {
+        padding: 10px;
+    }
+    
+    .player-avatar {
+        width: 30px;
+        height: 30px;
+    }
+    
+    .game-timer {
+        font-size: 1.2rem;
+    }
+    
+    .game-content {
+        flex-direction: column;
+        gap: 10px;
+        padding: 10px;
+        overflow-y: auto;
+    }
+    
+    .side-panel {
+        flex-direction: row;
+        justify-content: space-around;
+        width: 100%;
+        gap: 10px;
+    }
+    
+    .left-panel {
+        order: 2;
+    }
+    
+    .right-panel {
+        order: 3;
+    }
+    
+    .main-game-area {
+        order: 1;
+        margin: 0 auto;
+    }
+    
+    #game-canvas {
+        width: 200px;
+        height: 400px;
+        border-radius: 10px;
+    }
+    
+    #particles-canvas {
+        width: 200px;
+        height: 400px;
+    }
+    
+    .hold-container,
+    .next-container {
+        padding: 10px;
+    }
+    
+    #hold-canvas {
+        width: 80px;
+        height: 80px;
+    }
+    
+    .next-pieces canvas {
+        width: 60px;
+        height: 36px;
+    }
+    
+    #next-0 {
+        width: 70px;
+        height: 42px;
+    }
+    
+    .stats-container,
+    .score-container {
+        display: none;
+    }
+    
+    .action-log {
+        display: none;
+    }
+    
+    .title-main {
+        font-size: 3rem;
+    }
+    
+    .title-sub {
+        font-size: 1.2rem;
+    }
+    
+    .menu-button {
+        padding: 20px;
+    }
+    
+    .button-icon {
+        font-size: 2rem;
+    }
+    
+    .button-text {
+        font-size: 0.9rem;
+    }
+    
+    .modal-content {
+        padding: 20px;
+        max-height: 90vh;
+    }
+    
+    .controls-list {
+        grid-template-columns: 1fr;
+    }
+    
+    /* Mobile touch controls */
+    .mobile-controls {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        padding: 10px;
+        background: var(--bg-secondary);
+        border-top: 2px solid var(--bg-tertiary);
+        z-index: 100;
+    }
+    
+    .touch-button {
+        background: var(--bg-primary);
+        border: 2px solid var(--primary-color);
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 1.5rem;
+        color: var(--primary-color);
+        cursor: pointer;
+        transition: all 0.1s ease;
+        user-select: none;
+        -webkit-tap-highlight-color: transparent;
+    }
+    
+    .touch-button:active {
+        transform: scale(0.9);
+        background: var(--primary-color);
+        color: var(--bg-primary);
+    }
+    
+    .touch-button.large {
+        width: 60px;
+        height: 60px;
+        font-size: 2rem;
+    }
+    
+    /* Gesture zones for swipe controls */
+    .gesture-zone {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 10;
+        pointer-events: none;
+    }
+    
+    .gesture-zone.active {
+        pointer-events: auto;
+    }
+}
+
+/* Small mobile styles */
+@media screen and (max-width: 480px) {
+    #game-canvas {
+        width: 150px;
+        height: 300px;
+    }
+    
+    #particles-canvas {
+        width: 150px;
+        height: 300px;
+    }
+    
+    .game-header {
+        padding: 8px;
+    }
+    
+    .player-info {
+        gap: 8px;
+    }
+    
+    .player-name {
+        font-size: 0.9rem;
+    }
+    
+    .game-timer {
+        font-size: 1rem;
+    }
+    
+    .pause-button {
+        width: 30px;
+        height: 30px;
+        font-size: 1rem;
+    }
+    
+    .hold-container h3,
+    .next-container h3 {
+        font-size: 0.9rem;
+        margin-bottom: 8px;
+    }
+    
+    #hold-canvas {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .next-pieces {
+        gap: 5px;
+    }
+    
+    .next-pieces canvas {
+        width: 48px;
+        height: 28px;
+    }
+    
+    #next-0 {
+        width: 56px;
+        height: 33px;
+    }
+    
+    .title-main {
+        font-size: 2.5rem;
+    }
+    
+    .title-sub {
+        font-size: 1rem;
+    }
+    
+    .menu-button {
+        padding: 15px;
+    }
+    
+    .button-icon {
+        font-size: 1.5rem;
+    }
+    
+    .button-text {
+        font-size: 0.8rem;
+    }
+}
+
+/* Landscape orientation adjustments */
+@media screen and (max-height: 600px) and (orientation: landscape) {
+    .game-header {
+        display: none;
+    }
+    
+    .game-content {
+        flex-direction: row;
+        padding: 10px;
+    }
+    
+    .side-panel {
+        flex-direction: column;
+    }
+    
+    #game-canvas {
+        height: calc(100vh - 100px);
+        width: auto;
+    }
+    
+    #particles-canvas {
+        height: calc(100vh - 100px);
+        width: auto;
+    }
+    
+    .mobile-controls {
+        padding: 5px;
+    }
+    
+    .touch-button {
+        width: 40px;
+        height: 40px;
+        font-size: 1.2rem;
+    }
+    
+    .touch-button.large {
+        width: 50px;
+        height: 50px;
+        font-size: 1.5rem;
+    }
+}
+
+/* High DPI displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    canvas {
+        image-rendering: -webkit-optimize-contrast;
+        image-rendering: crisp-edges;
+    }
+}
+
+/* Reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+    
+    .particle,
+    .line-clear-effect,
+    .tspin-indicator,
+    .perfect-clear-effect,
+    .score-popup {
+        display: none !important;
+    }
+}
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg-primary: #000000;
+        --bg-secondary: #0a0a0a;
+        --bg-tertiary: #1a1a1a;
+    }
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+    .menu-button {
+        padding: 30px;
+    }
+    
+    .touch-button {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .close-button {
+        padding: 15px 40px;
+        font-size: 1.1rem;
+    }
+    
+    /* Disable hover effects on touch devices */
+    .menu-button:hover,
+    .social-link:hover,
+    .pause-button:hover,
+    .key-bind:hover,
+    .tab-button:hover:not(.active),
+    .leaderboard-entry:hover {
+        transform: none;
+        border-color: inherit;
+        box-shadow: none;
+        color: inherit;
+    }
+}
