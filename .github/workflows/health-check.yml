@@ -1,0 +1,112 @@
+name: Deployment Health Check
+
+on:
+  schedule:
+    # Run every 6 hours
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check-site:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Site Availability
+        id: check
+        run: |
+          URL="https://adawawsa.github.io/tetris-ultimate/"
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" $URL)
+          
+          if [ $HTTP_CODE -eq 200 ]; then
+            echo "Site is up! Status code: $HTTP_CODE"
+            echo "STATUS=success" >> $GITHUB_OUTPUT
+          else
+            echo "Site is down! Status code: $HTTP_CODE"
+            echo "STATUS=failure" >> $GITHUB_OUTPUT
+            echo "HTTP_CODE=$HTTP_CODE" >> $GITHUB_OUTPUT
+          fi
+          
+      - name: Check Game Loading
+        id: check-game
+        if: steps.check.outputs.STATUS == 'success'
+        run: |
+          # Check if main game file is accessible
+          GAME_URL="https://adawawsa.github.io/tetris-ultimate/src/main.js"
+          GAME_CODE=$(curl -s -o /dev/null -w "%{http_code}" $GAME_URL)
+          
+          if [ $GAME_CODE -eq 200 ]; then
+            echo "Game files are accessible"
+            echo "GAME_STATUS=success" >> $GITHUB_OUTPUT
+          else
+            echo "Game files are not accessible"
+            echo "GAME_STATUS=failure" >> $GITHUB_OUTPUT
+          fi
+          
+      - name: Create Issue if Site is Down
+        if: steps.check.outputs.STATUS == 'failure'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: 'site-down',
+              state: 'open'
+            });
+            
+            if (issues.data.length === 0) {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: '🔴 Site is Down - Automated Alert',
+                body: `## Site Health Check Failed
+                
+                The Tetris Ultimate site is not responding correctly.
+                
+                **URL:** https://adawawsa.github.io/tetris-ultimate/
+                **HTTP Status Code:** ${{ steps.check.outputs.HTTP_CODE }}
+                **Check Time:** ${new Date().toISOString()}
+                
+                ### Recommended Actions
+                1. Check GitHub Pages settings
+                2. Verify the latest deployment status
+                3. Check for any recent breaking changes
+                
+                This issue will be automatically closed when the site is back up.
+                
+                ---
+                *Automated health check*`,
+                labels: ['bug', 'site-down', 'automated']
+              });
+            }
+            
+      - name: Close Existing Issues if Site is Up
+        if: steps.check.outputs.STATUS == 'success'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: 'site-down',
+              state: 'open'
+            });
+            
+            for (const issue of issues.data) {
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                state: 'closed'
+              });
+              
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                body: '✅ Site is back up! Closing this issue.\n\n*Automated health check*'
+              });
+            }

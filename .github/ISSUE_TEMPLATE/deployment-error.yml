@@ -1,0 +1,50 @@
+name: Deployment Error
+description: Report a deployment error (automatically created)
+title: "[Deploy Error]: "
+labels: ["bug", "deployment"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This template is used by the automated error monitoring system.
+        
+  - type: textarea
+    id: error-logs
+    attributes:
+      label: Error Logs
+      description: Paste the error logs here
+      placeholder: |
+        Error details...
+    validations:
+      required: true
+      
+  - type: input
+    id: workflow-run
+    attributes:
+      label: Workflow Run URL
+      description: Link to the failed workflow run
+      placeholder: https://github.com/owner/repo/actions/runs/...
+    validations:
+      required: true
+      
+  - type: dropdown
+    id: error-type
+    attributes:
+      label: Error Type
+      options:
+        - Build Error
+        - Permission Error
+        - Module Import Error
+        - Asset Missing
+        - Other
+    validations:
+      required: true
+      
+  - type: checkboxes
+    id: auto-fix-attempted
+    attributes:
+      label: Auto-fix Status
+      options:
+        - label: Auto-fix was attempted
+        - label: Auto-fix resolved the issue
+        - label: Manual intervention required
