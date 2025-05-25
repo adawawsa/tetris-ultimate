@@ -3,6 +3,7 @@ import { Piece } from './Piece.js';
 import { PieceQueue } from './PieceQueue.js';
 import { GameStats } from './GameStats.js';
 import { AI } from '../ai/AI.js';
+import { MobileInputManager } from '../input/MobileInputManager.js';
 
 export class Game {
     constructor(options = {}) {
@@ -51,6 +52,11 @@ export class Game {
         };
         
         this.setupInputHandlers();
+        
+        // Setup mobile input if on mobile device
+        if (MobileInputManager.isMobile() && this.mode === 'single') {
+            this.mobileInputManager = new MobileInputManager(this);
+        }
     }
     
     start() {
@@ -249,6 +255,23 @@ export class Game {
         }
         
         return true;
+    }
+    
+    // Mobile-friendly methods
+    moveLeft() {
+        return this.movePiece(-1, 0);
+    }
+    
+    moveRight() {
+        return this.movePiece(1, 0);
+    }
+    
+    rotateRight() {
+        return this.rotatePiece(1);
+    }
+    
+    rotateLeft() {
+        return this.rotatePiece(-1);
     }
     
     rotatePiece(direction) {

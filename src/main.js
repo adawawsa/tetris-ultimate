@@ -112,6 +112,11 @@ export class TetrisUltimate {
         // Stop menu music
         this.soundManager.stopMenuMusic();
         
+        // Add mobile class if needed
+        if (this.isMobileDevice()) {
+            document.body.classList.add('mobile-device');
+        }
+        
         if (mode === 'ai-battle') {
             // Start AI Battle mode
             this.battleGame = new BattleGame();
