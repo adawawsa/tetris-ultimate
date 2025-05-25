@@ -43,6 +43,17 @@ export class BattleGame {
         this.playerParticles = new ParticleSystem();
         this.aiParticles = new ParticleSystem();
         
+        // Initialize particle systems
+        this.playerParticles.initialize();
+        this.aiParticles.initialize();
+        
+        console.log('Particle systems created:', {
+            playerParticles: !!this.playerParticles,
+            aiParticles: !!this.aiParticles,
+            playerAddParticle: typeof this.playerParticles.addParticle,
+            aiAddParticle: typeof this.aiParticles.addParticle
+        });
+        
         // Initialize AI
         this.ai = new AI(this.aiGame);
         this.aiGame.ai = this.ai;
