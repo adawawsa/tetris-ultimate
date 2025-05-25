@@ -386,7 +386,7 @@ export class BattleGame {
             
             // If still collides, game over
             if (board.collides(game.currentPiece)) {
-                game.gameOver = true;
+                game.isGameOver = true;
             }
         }
     }
@@ -457,6 +457,10 @@ export class BattleGame {
     start(difficulty = 'medium') {
         console.log('BattleGame.start called with difficulty:', difficulty);
         
+        // Initialize game states
+        this.playerGame.isGameOver = false;
+        this.aiGame.isGameOver = false;
+        
         // Set AI difficulty
         this.ai.setDifficulty(difficulty);
         
@@ -475,12 +479,21 @@ export class BattleGame {
         // Set up result buttons
         this.setupResultButtons();
         
+        console.log('Canvas check:', {
+            playerCanvas: !!this.playerCanvas,
+            aiCanvas: !!this.aiCanvas,
+            playerCtx: !!this.playerGame.ctx,
+            aiCtx: !!this.aiGame.ctx
+        });
+        
         console.log('Starting player game...');
         // Start both games - but don't start their individual loops
         this.playerGame.spawnPiece();
+        console.log('Player piece spawned:', this.playerGame.currentPiece?.type);
         
         console.log('Starting AI game...');
         this.aiGame.spawnPiece();
+        console.log('AI piece spawned:', this.aiGame.currentPiece?.type);
         
         this.battleActive = true;
         this.battleTimer = 0;
@@ -502,6 +515,16 @@ export class BattleGame {
         // Update both games
         this.playerGame.update(deltaTime);
         this.aiGame.update(deltaTime);
+        
+        // Check for game over
+        if (this.playerGame.isGameOver) {
+            this.handleGameOver('ai');
+            return;
+        }
+        if (this.aiGame.isGameOver) {
+            this.handleGameOver('player');
+            return;
+        }
         
         // Update particle systems
         this.playerParticles.update(deltaTime);
