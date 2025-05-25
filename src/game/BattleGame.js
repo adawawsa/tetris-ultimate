@@ -469,7 +469,7 @@ export class BattleGame {
             for (let y = 0; y < shape.length; y++) {
                 for (let x = 0; x < shape[y].length; x++) {
                     if (shape[y][x]) {
-                        ctx.fillStyle = this.getColor(piece.type);
+                        ctx.fillStyle = piece.color;
                         ctx.fillRect(
                             offsetX + x * blockSize,
                             offsetY + y * blockSize,
@@ -483,14 +483,16 @@ export class BattleGame {
     }
     
     renderNextPieces(game, canvases) {
-        const nextPieces = game.pieceQueue.preview(3);
+        const nextPieceTypes = game.pieceQueue.preview(3);
         
-        nextPieces.forEach((piece, index) => {
+        nextPieceTypes.forEach((pieceType, index) => {
             if (canvases[index]) {
                 const canvas = canvases[index];
                 const ctx = canvas.getContext('2d');
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 
+                // Create temporary piece to get its shape
+                const piece = new Piece(pieceType);
                 const blockSize = index === 0 ? 20 : 15;
                 const shape = piece.matrix;
                 
@@ -500,7 +502,7 @@ export class BattleGame {
                 for (let y = 0; y < shape.length; y++) {
                     for (let x = 0; x < shape[y].length; x++) {
                         if (shape[y][x]) {
-                            ctx.fillStyle = this.getColor(piece.type);
+                            ctx.fillStyle = piece.color;
                             ctx.fillRect(
                                 offsetX + x * blockSize,
                                 offsetY + y * blockSize,
@@ -585,6 +587,111 @@ export class BattleGame {
             player: { garbageSent: 0, garbageReceived: 0, knockouts: 0 },
             ai: { garbageSent: 0, garbageReceived: 0, knockouts: 0 }
         };
+    }
+    
+    basicRender(game, canvas, ctx) {
+        // Clear canvas
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // Calculate block size
+        const blockSize = canvas.width / game.board.width;
+        
+        // Draw grid lines
+        ctx.strokeStyle = '#333';
+        ctx.lineWidth = 0.5;
+        for (let x = 0; x <= game.board.width; x++) {
+            ctx.beginPath();
+            ctx.moveTo(x * blockSize, 0);
+            ctx.lineTo(x * blockSize, canvas.height);
+            ctx.stroke();
+        }
+        for (let y = 0; y <= game.board.height; y++) {
+            ctx.beginPath();
+            ctx.moveTo(0, y * blockSize);
+            ctx.lineTo(canvas.width, y * blockSize);
+            ctx.stroke();
+        }
+        
+        // Draw board
+        for (let y = 0; y < game.board.height; y++) {
+            for (let x = 0; x < game.board.width; x++) {
+                if (game.board.grid[y][x]) {
+                    ctx.fillStyle = this.getBlockColor(game.board.grid[y][x]);
+                    ctx.fillRect(
+                        x * blockSize + 1,
+                        y * blockSize + 1,
+                        blockSize - 2,
+                        blockSize - 2
+                    );
+                }
+            }
+        }
+        
+        // Draw ghost piece
+        if (game.currentPiece) {
+            const ghostY = this.getGhostPosition(game);
+            const piece = game.currentPiece;
+            ctx.fillStyle = piece.color + '40'; // 40 = 25% opacity
+            
+            for (let y = 0; y < piece.matrix.length; y++) {
+                for (let x = 0; x < piece.matrix[y].length; x++) {
+                    if (piece.matrix[y][x]) {
+                        ctx.fillRect(
+                            (piece.x + x) * blockSize + 1,
+                            (ghostY + y) * blockSize + 1,
+                            blockSize - 2,
+                            blockSize - 2
+                        );
+                    }
+                }
+            }
+        }
+        
+        // Draw current piece
+        if (game.currentPiece) {
+            const piece = game.currentPiece;
+            ctx.fillStyle = piece.color;
+            
+            for (let y = 0; y < piece.matrix.length; y++) {
+                for (let x = 0; x < piece.matrix[y].length; x++) {
+                    if (piece.matrix[y][x]) {
+                        ctx.fillRect(
+                            (piece.x + x) * blockSize + 1,
+                            (piece.y + y) * blockSize + 1,
+                            blockSize - 2,
+                            blockSize - 2
+                        );
+                    }
+                }
+            }
+        }
+    }
+    
+    getGhostPosition(game) {
+        const piece = game.currentPiece;
+        let ghostY = piece.y;
+        
+        // Move piece down until it collides
+        while (!game.board.collides({ ...piece, y: ghostY + 1 })) {
+            ghostY++;
+        }
+        
+        return ghostY;
+    }
+    
+    getBlockColor(value) {
+        const colors = [
+            '#000000', // 0: empty
+            '#00FFFF', // 1: I - Cyan
+            '#FFFF00', // 2: O - Yellow  
+            '#800080', // 3: T - Purple
+            '#00FF00', // 4: S - Green
+            '#FF0000', // 5: Z - Red
+            '#0000FF', // 6: J - Blue
+            '#FFA500', // 7: L - Orange
+            '#808080'  // 8: Garbage - Gray
+        ];
+        return colors[value] || '#FFFFFF';
     }
     
     setupResultButtons() {

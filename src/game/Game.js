@@ -5,15 +5,15 @@ import { GameStats } from './GameStats.js';
 import { AI } from '../ai/AI.js';
 
 export class Game {
-    constructor(options) {
-        this.mode = options.mode;
-        this.renderer = options.renderer;
-        this.soundManager = options.soundManager;
-        this.particleSystem = options.particleSystem;
-        this.inputManager = options.inputManager;
-        this.settingsManager = options.settingsManager;
-        this.networkManager = options.networkManager;
-        this.onGameOver = options.onGameOver;
+    constructor(options = {}) {
+        this.mode = options.mode || 'single';
+        this.renderer = options.renderer || null;
+        this.soundManager = options.soundManager || null;
+        this.particleSystem = options.particleSystem || null;
+        this.inputManager = options.inputManager || null;
+        this.settingsManager = options.settingsManager || null;
+        this.networkManager = options.networkManager || null;
+        this.onGameOver = options.onGameOver || null;
         
         this.board = new Board();
         this.pieceQueue = new PieceQueue();

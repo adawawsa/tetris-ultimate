@@ -141,4 +141,16 @@ export class Piece {
         cloned.matrix = this.matrix.map(row => [...row]);
         return cloned;
     }
+    
+    getBlockPositions() {
+        const positions = [];
+        for (let y = 0; y < this.matrix.length; y++) {
+            for (let x = 0; x < this.matrix[y].length; x++) {
+                if (this.matrix[y][x]) {
+                    positions.push([this.x + x, this.y + y]);
+                }
+            }
+        }
+        return positions;
+    }
 }

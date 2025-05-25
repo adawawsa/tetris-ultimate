@@ -26,9 +26,21 @@ export class Board {
     }
     
     addPiece(piece) {
+        const typeToNumber = {
+            'I': 1,
+            'O': 2,
+            'T': 3,
+            'S': 4,
+            'Z': 5,
+            'J': 6,
+            'L': 7
+        };
+        
+        const value = typeToNumber[piece.type] || 1;
+        
         piece.getBlockPositions().forEach(([x, y]) => {
             if (y >= 0) {
-                this.grid[y][x] = piece.type;
+                this.grid[y][x] = value;
             }
         });
     }
