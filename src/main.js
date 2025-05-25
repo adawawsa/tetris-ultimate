@@ -1,4 +1,5 @@
 import { Game } from './game/Game.js';
+import { BattleGame } from './game/BattleGame.js';
 import { SoundManager } from './audio/SoundManager.js';
 import { ParticleSystem } from './graphics/ParticleSystem.js';
 import { MenuManager } from './ui/MenuManager.js';
@@ -11,6 +12,7 @@ import { Renderer } from './graphics/Renderer.js';
 export class TetrisUltimate {
     constructor() {
         this.game = null;
+        this.battleGame = null;
         this.soundManager = new SoundManager();
         this.particleSystem = new ParticleSystem();
         this.menuManager = new MenuManager();
@@ -107,32 +109,38 @@ export class TetrisUltimate {
     }
     
     startGame(mode) {
-        // Hide menu
-        document.getElementById('main-menu').classList.add('hidden');
-        document.getElementById('game-container').classList.remove('hidden');
-        
         // Stop menu music
         this.soundManager.stopMenuMusic();
         
-        // Create game instance
-        this.game = new Game({
-            mode,
-            renderer: this.renderer,
-            soundManager: this.soundManager,
-            particleSystem: this.particleSystem,
-            inputManager: this.inputManager,
-            settingsManager: this.settingsManager,
-            networkManager: mode === 'multiplayer' ? this.networkManager : null,
-            onGameOver: (stats) => this.handleGameOver(stats)
-        });
-        
-        // Start game
-        this.game.start();
-        this.soundManager.playGameMusic();
-        
-        // Add mobile controls if needed
-        if (this.isMobileDevice()) {
-            this.createMobileControls();
+        if (mode === 'ai-battle') {
+            // Start AI Battle mode
+            this.battleGame = new BattleGame();
+            this.battleGame.start('medium'); // Default to medium difficulty
+        } else {
+            // Hide menu
+            document.getElementById('main-menu').classList.add('hidden');
+            document.getElementById('game-container').classList.remove('hidden');
+            
+            // Create game instance
+            this.game = new Game({
+                mode,
+                renderer: this.renderer,
+                soundManager: this.soundManager,
+                particleSystem: this.particleSystem,
+                inputManager: this.inputManager,
+                settingsManager: this.settingsManager,
+                networkManager: mode === 'multiplayer' ? this.networkManager : null,
+                onGameOver: (stats) => this.handleGameOver(stats)
+            });
+            
+            // Start game
+            this.game.start();
+            this.soundManager.playGameMusic();
+            
+            // Add mobile controls if needed
+            if (this.isMobileDevice()) {
+                this.createMobileControls();
+            }
         }
     }
     

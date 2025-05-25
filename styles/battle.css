@@ -1,0 +1,385 @@
+/* AI Battle Mode Styles */
+
+.battle-container {
+    width: 100%;
+    height: 100vh;
+    background: linear-gradient(135deg, #1a1a2e 0%, #0f0f1e 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Battle Header */
+.battle-header {
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    background: rgba(0, 0, 0, 0.5);
+    border-bottom: 2px solid #00ffff;
+}
+
+.vs-display {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.vs-text {
+    font-size: 2.5em;
+    font-weight: 900;
+    color: #ff0066;
+    text-shadow: 0 0 20px #ff0066;
+    animation: pulse 2s infinite;
+}
+
+.attack-display {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    font-size: 1.2em;
+}
+
+.attack-left, .attack-right {
+    min-width: 30px;
+    text-align: center;
+    font-weight: bold;
+}
+
+.attack-arrow {
+    font-size: 1.5em;
+    animation: shake 0.5s infinite;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-2px); }
+    75% { transform: translateX(2px); }
+}
+
+.ai-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.ai-name {
+    font-size: 1.5em;
+    font-weight: bold;
+    color: #ff6b6b;
+}
+
+.ai-difficulty {
+    font-size: 0.9em;
+    color: #ffdd00;
+}
+
+/* Battle Content */
+.battle-content {
+    display: flex;
+    height: calc(100vh - 80px);
+    padding: 20px;
+    gap: 20px;
+}
+
+.battle-player {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.battle-stats {
+    background: rgba(0, 0, 0, 0.6);
+    padding: 10px;
+    border-radius: 10px;
+    display: flex;
+    justify-content: space-around;
+}
+
+.stat-compact {
+    display: flex;
+    gap: 5px;
+    font-size: 0.9em;
+}
+
+.stat-compact span:first-child {
+    color: #999;
+}
+
+.stat-compact span:last-child {
+    color: #fff;
+    font-weight: bold;
+}
+
+.battle-field {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    position: relative;
+}
+
+.hold-box, .next-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    background: rgba(0, 0, 0, 0.6);
+    padding: 10px;
+    border-radius: 10px;
+}
+
+.hold-box span, .next-box span {
+    font-size: 0.8em;
+    color: #00ffff;
+    font-weight: bold;
+}
+
+.battle-field canvas {
+    border: 2px solid #333;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+    background: rgba(0, 0, 0, 0.8);
+}
+
+/* Player specific styles */
+.player-side .battle-field canvas {
+    border-color: #00ffff;
+}
+
+.ai-side .battle-field canvas {
+    border-color: #ff6b6b;
+}
+
+/* Center Display */
+.battle-center {
+    width: 150px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 30px;
+}
+
+.timer-display {
+    font-size: 2em;
+    font-weight: bold;
+    color: #fff;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+.attack-queue {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+}
+
+.attack-indicator {
+    height: 40px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    opacity: 0;
+    transition: all 0.3s;
+}
+
+.attack-indicator.active {
+    opacity: 1;
+    animation: attackPulse 0.5s ease-out;
+}
+
+.player-attack {
+    background: linear-gradient(90deg, #00ffff, transparent);
+    color: #00ffff;
+}
+
+.ai-attack {
+    background: linear-gradient(270deg, #ff6b6b, transparent);
+    color: #ff6b6b;
+}
+
+@keyframes attackPulse {
+    0% { transform: scale(0.8); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+.combo-indicator {
+    position: relative;
+    width: 100%;
+    height: 100px;
+}
+
+.player-combo, .ai-combo {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: all 0.3s;
+}
+
+.player-combo {
+    left: 0;
+}
+
+.ai-combo {
+    right: 0;
+}
+
+.combo-num {
+    font-size: 2.5em;
+    font-weight: 900;
+    text-shadow: 0 0 20px currentColor;
+}
+
+.combo-label {
+    font-size: 0.8em;
+    font-weight: bold;
+}
+
+.player-combo .combo-num {
+    color: #00ffff;
+}
+
+.ai-combo .combo-num {
+    color: #ff6b6b;
+}
+
+/* Battle Result */
+.battle-result {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.result-content {
+    background: linear-gradient(135deg, #1a1a2e, #2d2d44);
+    padding: 40px;
+    border-radius: 20px;
+    text-align: center;
+    border: 2px solid #00ffff;
+    box-shadow: 0 0 40px rgba(0, 255, 255, 0.5);
+}
+
+.result-title {
+    font-size: 3em;
+    margin-bottom: 20px;
+    background: linear-gradient(45deg, #00ffff, #ff0066);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.result-winner {
+    font-size: 2em;
+    margin-bottom: 30px;
+    font-weight: bold;
+}
+
+.result-stats {
+    display: flex;
+    gap: 40px;
+    justify-content: center;
+    margin-bottom: 30px;
+}
+
+.player-final-stats, .ai-final-stats {
+    background: rgba(0, 0, 0, 0.5);
+    padding: 20px;
+    border-radius: 10px;
+    min-width: 200px;
+}
+
+.rematch-button, .menu-button {
+    margin: 0 10px;
+    padding: 15px 30px;
+    font-size: 1.1em;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-weight: bold;
+}
+
+.rematch-button {
+    background: #00ffff;
+    color: #000;
+}
+
+.rematch-button:hover {
+    background: #00dddd;
+    transform: scale(1.05);
+}
+
+.menu-button {
+    background: #666;
+    color: #fff;
+}
+
+.menu-button:hover {
+    background: #555;
+    transform: scale(1.05);
+}
+
+/* Animations */
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+/* Attack Effects */
+.garbage-warning {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 20px;
+    background: repeating-linear-gradient(
+        45deg,
+        #ff0000,
+        #ff0000 10px,
+        #ffff00 10px,
+        #ffff00 20px
+    );
+    animation: warningPulse 0.5s infinite;
+    opacity: 0.8;
+}
+
+@keyframes warningPulse {
+    0%, 100% { opacity: 0.8; }
+    50% { opacity: 1; }
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .battle-content {
+        flex-direction: column;
+    }
+    
+    .battle-center {
+        width: 100%;
+        flex-direction: row;
+        height: 60px;
+    }
+    
+    .battle-field canvas {
+        width: 200px;
+        height: 400px;
+    }
+    
+    .hold-box canvas, .next-box canvas {
+        width: 60px;
+        height: 60px;
+    }
+}
