@@ -965,9 +965,14 @@ export class BattleGame {
         const piece = game.currentPiece;
         let ghostY = piece.y;
         
+        // Create a temporary piece for collision detection
+        const tempPiece = piece.clone();
+        tempPiece.y = ghostY + 1;
+        
         // Move piece down until it collides
-        while (!game.board.collides({ ...piece, y: ghostY + 1 })) {
+        while (!game.board.collides(tempPiece)) {
             ghostY++;
+            tempPiece.y = ghostY + 1;
         }
         
         return ghostY;
@@ -1017,12 +1022,12 @@ export class BattleGame {
     
     // Define tetrisColors property for particle effects
     tetrisColors = {
-        0: '#00ffff', // I - Cyan
-        1: '#0000ff', // J - Blue
-        2: '#ff7f00', // L - Orange
-        3: '#ffff00', // O - Yellow
-        4: '#00ff00', // S - Green
-        5: '#ff0000', // Z - Red
-        6: '#800080'  // T - Purple
+        'I': '#00ffff', // I - Cyan
+        'J': '#0000ff', // J - Blue
+        'L': '#ff7f00', // L - Orange
+        'O': '#ffff00', // O - Yellow
+        'S': '#00ff00', // S - Green
+        'Z': '#ff0000', // Z - Red
+        'T': '#800080'  // T - Purple
     };
 }
