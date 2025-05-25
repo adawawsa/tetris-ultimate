@@ -205,4 +205,22 @@ export class ParticleSystem {
     clear() {
         this.particles = [];
     }
+    
+    // Alias for compatibility
+    addParticle(options) {
+        this.createParticle(options.x, options.y, 'primary', {
+            vx: options.vx,
+            vy: options.vy,
+            size: options.size,
+            life: options.life,
+            decay: options.decay || 0.02,
+            gravity: options.gravity || 0.1,
+            color: options.color
+        });
+        
+        // Override color if provided
+        if (options.color && this.particles.length > 0) {
+            this.particles[this.particles.length - 1].color = options.color;
+        }
+    }
 }
