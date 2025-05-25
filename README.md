@@ -2,9 +2,16 @@
 
 最高レベルのテトリスゲーム体験を提供する、フル機能のWebベースのテトリスゲームです。
 
-## 起動方法
+🎮 **今すぐプレイ**: https://adawawsa.github.io/tetris-ultimate/
 
-### 方法1: ローカルHTTPサーバーを使用（推奨）
+## 🚀 プレイ方法
+
+### オンラインでプレイ（推奨）
+
+ブラウザで以下のURLにアクセスするだけですぐにプレイできます：
+https://adawawsa.github.io/tetris-ultimate/
+
+### ローカルで実行
 
 モジュールシステムを使用しているため、ローカルHTTPサーバーが必要です。
 
@@ -29,11 +36,8 @@ http-server -p 8000
 #### VS Codeを使用する場合:
 Live Server拡張機能をインストールして、index.htmlを右クリック→「Open with Live Server」
 
-### 方法2: シンプル版を使用
 
-すぐにプレイしたい場合は、`tetris-ultimate-simple.html`を直接ブラウザで開いてください。
-
-## 機能
+## ✨ 機能
 
 ### ゲームメカニクス
 - **ホールド機能**: 現在のピースを保持
@@ -87,7 +91,7 @@ Live Server拡張機能をインストールして、index.htmlを右クリッ�
 - **コントロール**: キーバインディングのカスタマイズ
 - **アクセシビリティ**: カラーブラインドモード、ハイコントラスト
 
-## 技術仕様
+## 💻 技術仕様
 
 ### 使用技術
 - **HTML5 Canvas**: ゲーム描画
@@ -102,7 +106,14 @@ Live Server拡張機能をインストールして、index.htmlを右クリッ�
 - Safari 13+
 - Edge 80+
 
-## 開発
+## 🛠️ 開発
+
+### デプロイ
+
+このプロジェクトはGitHub Actionsを使用して自動的にGitHub Pagesにデプロイされます。
+mainブランチにプッシュすると自動的に更新されます。
+
+詳細は[DEPLOYMENT.md](DEPLOYMENT.md)を参照してください。
 
 ### ディレクトリ構造
 ```
@@ -127,6 +138,15 @@ tetris-ultimate/
 - `src/managers/SettingsManager.js`: デフォルト設定
 - `src/ai/AI.js`: AI難易度パラメーター
 
-## ライセンス
+## 🤝 コントリビューション
+
+プルリクエストや問題報告を歓迎します！
+新機能の提案やバグ報告は[Issues](https://github.com/adawawsa/tetris-ultimate/issues)でお願いします。
+
+## 📄 ライセンス
 
 このプロジェクトはMITライセンスで公開されています。
+
+---
+
+🎮 **今すぐプレイ**: https://adawawsa.github.io/tetris-ultimate/
