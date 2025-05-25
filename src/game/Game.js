@@ -653,4 +653,32 @@ export class Game {
         this.inputManager.removeAllListeners();
         clearTimeout(this.comboTimeout);
     }
+    
+    reset() {
+        // Reset game state
+        this.board = new Board();
+        this.pieceQueue = new PieceQueue();
+        this.stats = new GameStats();
+        this.currentPiece = null;
+        this.heldPiece = null;
+        this.canHold = true;
+        this.isGameOver = false;
+        this.paused = false;
+        this.dropTimer = 0;
+        this.lockTimer = 0;
+        this.moveCounter = 0;
+        this.gameTime = 0;
+        this.comboTimeout = null;
+        
+        // Clear any game over effects
+        const canvas = document.getElementById('game-canvas');
+        if (canvas) {
+            canvas.classList.remove('game-over');
+        }
+        
+        // Clear particles if they exist
+        if (this.particleSystem) {
+            this.particleSystem.clear();
+        }
+    }
 }

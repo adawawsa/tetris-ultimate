@@ -1010,21 +1010,26 @@ export class BattleGame {
     }
     
     setupResultButtons() {
-        const rematchButton = document.querySelector('.rematch-button');
-        const menuButton = document.querySelector('.menu-button');
+        const resultModal = document.getElementById('battle-result');
+        if (!resultModal) return;
+        
+        const rematchButton = resultModal.querySelector('.rematch-button');
+        const menuButton = resultModal.querySelector('.menu-button');
         
         if (rematchButton) {
             rematchButton.onclick = () => {
+                console.log('Rematch clicked');
                 this.reset();
-                document.getElementById('battle-result').classList.add('hidden');
+                resultModal.classList.add('hidden');
                 this.start(this.ai.difficulty);
             };
         }
         
         if (menuButton) {
             menuButton.onclick = () => {
+                console.log('Menu clicked');
                 this.reset();
-                document.getElementById('battle-result').classList.add('hidden');
+                resultModal.classList.add('hidden');
                 document.getElementById('battle-container').classList.add('hidden');
                 document.getElementById('main-menu').classList.remove('hidden');
             };
