@@ -333,10 +333,12 @@ export class Game {
         
         if (this.soundManager) this.soundManager.playSound('hold');
         
-        // Hold animation
+        // Hold animation (only if canvas exists)
         const holdCanvas = document.getElementById('hold-canvas');
-        holdCanvas.classList.add('hold-animation');
-        setTimeout(() => holdCanvas.classList.remove('hold-animation'), 500);
+        if (holdCanvas) {
+            holdCanvas.classList.add('hold-animation');
+            setTimeout(() => holdCanvas.classList.remove('hold-animation'), 500);
+        }
     }
     
     lockPiece() {

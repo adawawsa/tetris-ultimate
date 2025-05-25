@@ -126,8 +126,8 @@ export class AI {
             }
         }
         
-        // Also consider using hold if available
-        if (this.game.canHold && this.difficulty !== 'easy') {
+        // Also consider using hold if available (but not in battle mode)
+        if (this.game.canHold && this.difficulty !== 'easy' && this.game.mode !== 'battle-ai') {
             const heldPiece = this.game.heldPiece || this.game.pieceQueue.preview(1)[0];
             // Add hold moves (simplified for now)
             moves.push({ useHold: true, x: 4, rotation: 0 });
@@ -289,7 +289,10 @@ export class AI {
                 this.game.hardDrop();
                 break;
             case 'hold':
-                this.game.holdPiece();
+                // Skip hold in battle mode to avoid DOM errors
+                if (this.game.mode !== 'battle-ai') {
+                    this.game.holdPiece();
+                }
                 break;
             case 'softDrop':
                 this.game.softDrop();
