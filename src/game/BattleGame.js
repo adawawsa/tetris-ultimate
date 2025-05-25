@@ -1,13 +1,32 @@
 import { Game } from './Game.js';
 import { Board } from './Board.js';
+import { Piece } from './Piece.js';
 import { Renderer } from '../graphics/Renderer.js';
 import { AI } from '../ai/AI.js';
 
 export class BattleGame {
     constructor() {
         // Create two separate game instances
-        this.playerGame = new Game('battle-player');
-        this.aiGame = new Game('battle-ai');
+        this.playerGame = new Game({
+            mode: 'battle-player',
+            renderer: null,
+            soundManager: null,
+            particleSystem: null,
+            inputManager: null,
+            settingsManager: null,
+            networkManager: null,
+            onGameOver: null
+        });
+        this.aiGame = new Game({
+            mode: 'battle-ai',
+            renderer: null,
+            soundManager: null,
+            particleSystem: null,
+            inputManager: null,
+            settingsManager: null,
+            networkManager: null,
+            onGameOver: null
+        });
         
         // Set up canvases
         this.setupCanvases();
@@ -22,6 +41,24 @@ export class BattleGame {
         // Initialize AI
         this.ai = new AI(this.aiGame);
         this.aiGame.ai = this.ai;
+        
+        // Get required managers from window if available
+        if (window.tetrisUltimate) {
+            this.soundManager = window.tetrisUltimate.soundManager;
+            this.particleSystem = window.tetrisUltimate.particleSystem;
+            this.settingsManager = window.tetrisUltimate.settingsManager;
+            
+            // Set managers for both games
+            this.playerGame.soundManager = this.soundManager;
+            this.playerGame.particleSystem = this.particleSystem;
+            this.playerGame.settingsManager = this.settingsManager;
+            this.playerGame.renderer = this.playerRenderer;
+            
+            this.aiGame.soundManager = this.soundManager;
+            this.aiGame.particleSystem = this.particleSystem;
+            this.aiGame.settingsManager = this.settingsManager;
+            this.aiGame.renderer = this.aiRenderer;
+        }
         
         // Battle specific properties
         this.attackQueue = {
@@ -381,7 +418,12 @@ export class BattleGame {
     render() {
         // Render player game
         if (this.playerCanvas && this.playerGame.ctx) {
-            this.playerRenderer.render(this.playerGame, this.playerCanvas, this.playerGame.ctx);
+            if (this.playerRenderer && this.playerRenderer.render) {
+                this.playerRenderer.render(this.playerGame, this.playerCanvas, this.playerGame.ctx);
+            } else {
+                // Basic rendering without renderer
+                this.basicRender(this.playerGame, this.playerCanvas, this.playerGame.ctx);
+            }
             
             // Render hold piece
             if (this.playerHoldCanvas) {
@@ -395,7 +437,12 @@ export class BattleGame {
         
         // Render AI game
         if (this.aiCanvas && this.aiGame.ctx) {
-            this.aiRenderer.render(this.aiGame, this.aiCanvas, this.aiGame.ctx);
+            if (this.aiRenderer && this.aiRenderer.render) {
+                this.aiRenderer.render(this.aiGame, this.aiCanvas, this.aiGame.ctx);
+            } else {
+                // Basic rendering without renderer
+                this.basicRender(this.aiGame, this.aiCanvas, this.aiGame.ctx);
+            }
             
             // Render hold piece
             if (this.aiHoldCanvas) {
@@ -413,8 +460,8 @@ export class BattleGame {
         
         if (game.heldPiece) {
             const blockSize = 20;
-            const piece = game.heldPiece;
-            const shape = piece.shapes[0];
+            const piece = new Piece(game.heldPiece);
+            const shape = piece.matrix;
             
             const offsetX = (canvas.width - shape[0].length * blockSize) / 2;
             const offsetY = (canvas.height - shape.length * blockSize) / 2;
@@ -422,7 +469,7 @@ export class BattleGame {
             for (let y = 0; y < shape.length; y++) {
                 for (let x = 0; x < shape[y].length; x++) {
                     if (shape[y][x]) {
-                        ctx.fillStyle = this.playerRenderer.getColor(piece.type);
+                        ctx.fillStyle = this.getColor(piece.type);
                         ctx.fillRect(
                             offsetX + x * blockSize,
                             offsetY + y * blockSize,
@@ -445,7 +492,7 @@ export class BattleGame {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 
                 const blockSize = index === 0 ? 20 : 15;
-                const shape = piece.shapes[0];
+                const shape = piece.matrix;
                 
                 const offsetX = (canvas.width - shape[0].length * blockSize) / 2;
                 const offsetY = (canvas.height - shape.length * blockSize) / 2;
@@ -453,7 +500,7 @@ export class BattleGame {
                 for (let y = 0; y < shape.length; y++) {
                     for (let x = 0; x < shape[y].length; x++) {
                         if (shape[y][x]) {
-                            ctx.fillStyle = this.playerRenderer.getColor(piece.type);
+                            ctx.fillStyle = this.getColor(piece.type);
                             ctx.fillRect(
                                 offsetX + x * blockSize,
                                 offsetY + y * blockSize,
@@ -559,6 +606,73 @@ export class BattleGame {
                 document.getElementById('battle-container').classList.add('hidden');
                 document.getElementById('main-menu').classList.remove('hidden');
             };
+        }
+    }
+    
+    getColor(pieceType) {
+        const colors = {
+            0: '#00ffff', // I - Cyan
+            1: '#0000ff', // J - Blue
+            2: '#ff7f00', // L - Orange
+            3: '#ffff00', // O - Yellow
+            4: '#00ff00', // S - Green
+            5: '#ff0000', // Z - Red
+            6: '#800080'  // T - Purple
+        };
+        return colors[pieceType] || '#888888';
+    }
+    
+    basicRender(game, canvas, ctx) {
+        const blockSize = canvas.width / 10;
+        
+        // Clear canvas
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // Draw grid
+        ctx.strokeStyle = '#222';
+        for (let x = 0; x <= 10; x++) {
+            ctx.beginPath();
+            ctx.moveTo(x * blockSize, 0);
+            ctx.lineTo(x * blockSize, canvas.height);
+            ctx.stroke();
+        }
+        for (let y = 0; y <= 20; y++) {
+            ctx.beginPath();
+            ctx.moveTo(0, y * blockSize);
+            ctx.lineTo(canvas.width, y * blockSize);
+            ctx.stroke();
+        }
+        
+        // Draw board
+        if (game.board && game.board.grid) {
+            for (let y = 0; y < game.board.height; y++) {
+                for (let x = 0; x < game.board.width; x++) {
+                    if (game.board.grid[y][x] !== 0) {
+                        ctx.fillStyle = this.getColor(game.board.grid[y][x] - 1);
+                        ctx.fillRect(x * blockSize, y * blockSize, blockSize - 1, blockSize - 1);
+                    }
+                }
+            }
+        }
+        
+        // Draw current piece
+        if (game.currentPiece) {
+            const piece = game.currentPiece;
+            const shape = piece.matrix;
+            ctx.fillStyle = this.getColor(piece.type);
+            
+            for (let y = 0; y < shape.length; y++) {
+                for (let x = 0; x < shape[y].length; x++) {
+                    if (shape[y][x]) {
+                        ctx.fillRect(
+                            (piece.x + x) * blockSize,
+                            (piece.y + y) * blockSize,
+                            blockSize - 1,
+                            blockSize - 1
+                        );
+                    }
+                }
+            }
         }
     }
 }

@@ -60,6 +60,8 @@ export class Game {
     }
     
     setupInputHandlers() {
+        if (!this.inputManager) return; // Skip if no input manager
+        
         // Keyboard controls
         this.inputManager.on('keydown', (action) => {
             if (!this.isPaused && !this.isGameOver && this.inputHandlers[action]) {
@@ -126,34 +128,46 @@ export class Game {
         }
         
         // Update particles
-        this.particleSystem.update(deltaTime);
+        if (this.particleSystem) {
+            this.particleSystem.update(deltaTime);
+        }
     }
     
     render() {
+        // In battle mode, rendering is handled by BattleGame
+        if (this.mode === 'battle-player' || this.mode === 'battle-ai') {
+            return;
+        }
+        
         const canvas = document.getElementById('game-canvas');
+        if (!canvas) return;
+        
         const ctx = canvas.getContext('2d');
         
         // Clear canvas
         ctx.fillStyle = '#0a0a0a';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         
-        // Render grid
-        if (this.settingsManager.get('gridEnabled')) {
-            this.renderer.renderGrid(ctx, this.board);
-        }
-        
-        // Render board
-        this.renderer.renderBoard(ctx, this.board);
-        
-        // Render ghost piece
-        if (this.settingsManager.get('ghostEnabled') && this.currentPiece) {
-            const ghostY = this.getGhostPosition();
-            this.renderer.renderGhostPiece(ctx, this.currentPiece, ghostY);
-        }
-        
-        // Render current piece
-        if (this.currentPiece) {
-            this.renderer.renderPiece(ctx, this.currentPiece);
+        // Only use renderer if available
+        if (this.renderer) {
+            // Render grid
+            if (this.settingsManager && this.settingsManager.get('gridEnabled')) {
+                this.renderer.renderGrid(ctx, this.board);
+            }
+            
+            // Render board
+            this.renderer.renderBoard(ctx, this.board);
+            
+            // Render ghost piece
+            if (this.settingsManager && this.settingsManager.get('ghostEnabled') && this.currentPiece) {
+                const ghostY = this.getGhostPosition();
+                this.renderer.renderGhostPiece(ctx, this.currentPiece, ghostY);
+            }
+            
+            // Render current piece
+            if (this.currentPiece) {
+                this.renderer.renderPiece(ctx, this.currentPiece);
+            }
         }
         
         // Render hold piece
@@ -163,11 +177,13 @@ export class Game {
         this.renderNextPieces();
         
         // Render particles
-        if (this.settingsManager.get('particlesEnabled')) {
+        if (this.settingsManager && this.settingsManager.get('particlesEnabled') && this.particleSystem) {
             const particlesCanvas = document.getElementById('particles-canvas');
-            const particlesCtx = particlesCanvas.getContext('2d');
-            particlesCtx.clearRect(0, 0, particlesCanvas.width, particlesCanvas.height);
-            this.particleSystem.render(particlesCtx);
+            if (particlesCanvas) {
+                const particlesCtx = particlesCanvas.getContext('2d');
+                particlesCtx.clearRect(0, 0, particlesCanvas.width, particlesCanvas.height);
+                this.particleSystem.render(particlesCtx);
+            }
         }
         
         // Update UI
@@ -207,7 +223,7 @@ export class Game {
         }
         
         // Sound effect
-        if (dx !== 0) {
+        if (dx !== 0 && this.soundManager) {
             this.soundManager.playSound('move');
         }
         
@@ -236,16 +252,16 @@ export class Game {
                 // Check for T-Spin
                 if (this.currentPiece.type === 'T' && this.checkTSpin()) {
                     this.stats.tSpin();
-                    this.soundManager.playSound('tspin');
+                    if (this.soundManager) this.soundManager.playSound('tspin');
                     this.showAction('T-SPIN', 'tspin');
                     
                     // T-Spin particles
                     const centerX = (this.currentPiece.x + 1.5) * 30;
                     const centerY = (this.currentPiece.y + 1.5) * 30;
-                    this.particleSystem.createBurst(centerX, centerY, 'secondary', 20);
+                    if (this.particleSystem) this.particleSystem.createBurst(centerX, centerY, 'secondary', 20);
                 }
                 
-                this.soundManager.playSound('rotate');
+                if (this.soundManager) this.soundManager.playSound('rotate');
                 this.lockTimer = 0;
                 this.moveCounter++;
                 return true;
@@ -279,10 +295,10 @@ export class Game {
         this.lockPiece();
         
         // Hard drop effect
-        this.soundManager.playSound('hardDrop');
+        if (this.soundManager) this.soundManager.playSound('hardDrop');
         const x = (this.currentPiece.x + this.currentPiece.matrix[0].length / 2) * 30;
         const y = this.currentPiece.y * 30;
-        this.particleSystem.createBurst(x, y, 'primary', 10);
+        if (this.particleSystem) this.particleSystem.createBurst(x, y, 'primary', 10);
     }
     
     holdPiece() {
@@ -300,7 +316,7 @@ export class Game {
         this.heldPiece = temp;
         this.canHold = false;
         
-        this.soundManager.playSound('hold');
+        if (this.soundManager) this.soundManager.playSound('hold');
         
         // Hold animation
         const holdCanvas = document.getElementById('hold-canvas');
@@ -315,10 +331,10 @@ export class Game {
         this.board.addPiece(this.currentPiece);
         
         // Lock effect
-        this.soundManager.playSound('lock');
+        if (this.soundManager) this.soundManager.playSound('lock');
         const blocks = this.currentPiece.getBlockPositions();
         blocks.forEach(([x, y]) => {
-            this.particleSystem.createParticle(x * 30 + 15, y * 30 + 15, 'primary');
+            if (this.particleSystem) this.particleSystem.createParticle(x * 30 + 15, y * 30 + 15, 'primary');
         });
         
         // Check for line clears
@@ -330,7 +346,7 @@ export class Game {
         // Check for perfect clear
         if (this.board.isPerfectClear()) {
             this.stats.perfectClear();
-            this.soundManager.playSound('perfectClear');
+            if (this.soundManager) this.soundManager.playSound('perfectClear');
             this.showAction('PERFECT CLEAR!', 'perfect');
             
             // Perfect clear effect
@@ -351,10 +367,10 @@ export class Game {
         
         // Sound effects
         if (lineCount === 4) {
-            this.soundManager.playSound('tetris');
+            if (this.soundManager) this.soundManager.playSound('tetris');
             this.showAction('TETRIS!', 'tetris');
         } else {
-            this.soundManager.playSound('lineClear');
+            if (this.soundManager) this.soundManager.playSound('lineClear');
         }
         
         // Line clear animation
@@ -368,7 +384,7 @@ export class Game {
                 
                 // Particles along the line
                 for (let x = 0; x < this.board.width; x++) {
-                    this.particleSystem.createBurst(x * 30 + 15, y * 30 + 15, 'tertiary', 3);
+                    if (this.particleSystem) this.particleSystem.createBurst(x * 30 + 15, y * 30 + 15, 'tertiary', 3);
                 }
                 
                 setTimeout(() => effect.remove(), 500);
@@ -378,7 +394,7 @@ export class Game {
         // Check for back-to-back
         if (this.stats.isBackToBack(lineCount)) {
             this.showAction('BACK-TO-BACK', 'b2b');
-            this.soundManager.playSound('b2b');
+            if (this.soundManager) this.soundManager.playSound('b2b');
         }
         
         // Update combo
@@ -421,6 +437,8 @@ export class Game {
     
     showAction(text, type) {
         const log = document.getElementById('action-log');
+        if (!log) return;
+        
         const message = document.createElement('div');
         message.className = `action-message ${type}`;
         message.textContent = text;
@@ -435,18 +453,29 @@ export class Game {
     
     showCombo(count) {
         const display = document.getElementById('combo-display');
-        const countElement = display.querySelector('.combo-count');
-        countElement.textContent = count;
-        display.classList.remove('hidden');
+        if (!display) return;
         
-        clearTimeout(this.comboTimeout);
-        this.comboTimeout = setTimeout(() => {
-            display.classList.add('hidden');
-        }, 2000);
+        const countElement = display.querySelector('.combo-count');
+        if (countElement) {
+            countElement.textContent = count;
+            display.classList.remove('hidden');
+            
+            clearTimeout(this.comboTimeout);
+            this.comboTimeout = setTimeout(() => {
+                display.classList.add('hidden');
+            }, 2000);
+        }
     }
     
     renderHoldPiece() {
+        // Skip in battle mode - handled by BattleGame
+        if (this.mode === 'battle-player' || this.mode === 'battle-ai') {
+            return;
+        }
+        
         const canvas = document.getElementById('hold-canvas');
+        if (!canvas) return;
+        
         const ctx = canvas.getContext('2d');
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         
@@ -478,6 +507,11 @@ export class Game {
     }
     
     renderNextPieces() {
+        // Skip in battle mode - handled by BattleGame
+        if (this.mode === 'battle-player' || this.mode === 'battle-ai') {
+            return;
+        }
+        
         const nextPieces = this.pieceQueue.preview(5);
         
         nextPieces.forEach((type, index) => {
@@ -508,19 +542,40 @@ export class Game {
     }
     
     updateUI() {
-        document.getElementById('score').textContent = this.stats.score.toLocaleString();
-        document.getElementById('level').textContent = this.stats.level;
-        document.getElementById('lines').textContent = this.stats.lines;
-        document.getElementById('ppm').textContent = this.stats.ppm.toFixed(1);
-        document.getElementById('apm').textContent = this.stats.apm.toFixed(1);
-        document.getElementById('tspins').textContent = this.stats.tspins;
-        document.getElementById('combo').textContent = this.stats.maxCombo;
+        // Skip in battle mode - handled by BattleGame
+        if (this.mode === 'battle-player' || this.mode === 'battle-ai') {
+            return;
+        }
+        
+        const scoreEl = document.getElementById('score');
+        if (scoreEl) scoreEl.textContent = this.stats.score.toLocaleString();
+        
+        const levelEl = document.getElementById('level');
+        if (levelEl) levelEl.textContent = this.stats.level;
+        
+        const linesEl = document.getElementById('lines');
+        if (linesEl) linesEl.textContent = this.stats.lines;
+        
+        const ppmEl = document.getElementById('ppm');
+        if (ppmEl) ppmEl.textContent = this.stats.ppm.toFixed(1);
+        
+        const apmEl = document.getElementById('apm');
+        if (apmEl) apmEl.textContent = this.stats.apm.toFixed(1);
+        
+        const tspinsEl = document.getElementById('tspins');
+        if (tspinsEl) tspinsEl.textContent = this.stats.tspins;
+        
+        const comboEl = document.getElementById('combo');
+        if (comboEl) comboEl.textContent = this.stats.maxCombo;
         
         // Update timer
-        const minutes = Math.floor(this.gameTime / 60000);
-        const seconds = Math.floor((this.gameTime % 60000) / 1000);
-        document.querySelector('.game-timer').textContent = 
-            `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        const timerEl = document.querySelector('.game-timer');
+        if (timerEl) {
+            const minutes = Math.floor(this.gameTime / 60000);
+            const seconds = Math.floor((this.gameTime % 60000) / 1000);
+            timerEl.textContent = 
+                `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
     }
     
     togglePause() {
@@ -542,7 +597,7 @@ export class Game {
     
     gameOver() {
         this.isGameOver = true;
-        this.soundManager.playSound('gameOver');
+        if (this.soundManager) this.soundManager.playSound('gameOver');
         
         // Game over effect
         const canvas = document.getElementById('game-canvas');

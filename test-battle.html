@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test AI Battle Mode</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/battle.css">
+    <style>
+        body {
+            background: #000;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        #error-log {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255,0,0,0.1);
+            padding: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .error-entry {
+            margin: 2px 0;
+            color: #ff6666;
+        }
+    </style>
+</head>
+<body>
+    <div id="battle-container" class="battle-container">
+        <div class="battle-header">
+            <div class="player-info">
+                <img src="assets/avatar-default.png" alt="Player Avatar" class="player-avatar">
+                <span class="player-name">Player</span>
+            </div>
+            <div class="vs-display">
+                <span class="vs-text">VS</span>
+                <div class="attack-display">
+                    <span class="attack-left">0</span>
+                    <span class="attack-arrow">⚔️</span>
+                    <span class="attack-right">0</span>
+                </div>
+            </div>
+            <div class="ai-info">
+                <span class="ai-name">AI</span>
+                <span class="ai-difficulty">Medium</span>
+            </div>
+            <button class="pause-button">⏸️</button>
+        </div>
+
+        <div class="battle-content">
+            <!-- Player Side -->
+            <div class="battle-player player-side">
+                <div class="battle-stats">
+                    <div class="stat-compact">
+                        <span>Score:</span>
+                        <span id="player-score">0</span>
+                    </div>
+                    <div class="stat-compact">
+                        <span>Lines:</span>
+                        <span id="player-lines">0</span>
+                    </div>
+                    <div class="stat-compact">
+                        <span>APM:</span>
+                        <span id="player-apm">0</span>
+                    </div>
+                </div>
+                
+                <div class="battle-field">
+                    <div class="hold-box">
+                        <span>HOLD</span>
+                        <canvas id="player-hold" width="80" height="80"></canvas>
+                    </div>
+                    <canvas id="player-canvas" width="250" height="500"></canvas>
+                    <div class="next-box">
+                        <span>NEXT</span>
+                        <canvas id="player-next-0" width="80" height="60"></canvas>
+                        <canvas id="player-next-1" width="60" height="45"></canvas>
+                        <canvas id="player-next-2" width="60" height="45"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Center Display -->
+            <div class="battle-center">
+                <div class="timer-display">
+                    <span id="battle-timer">00:00</span>
+                </div>
+                <div class="attack-queue">
+                    <div class="attack-indicator player-attack"></div>
+                    <div class="attack-indicator ai-attack"></div>
+                </div>
+                <div class="combo-indicator">
+                    <div class="player-combo hidden">
+                        <span class="combo-num">0</span>
+                        <span class="combo-label">COMBO</span>
+                    </div>
+                    <div class="ai-combo hidden">
+                        <span class="combo-num">0</span>
+                        <span class="combo-label">COMBO</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Side -->
+            <div class="battle-player ai-side">
+                <div class="battle-stats">
+                    <div class="stat-compact">
+                        <span>Score:</span>
+                        <span id="ai-score">0</span>
+                    </div>
+                    <div class="stat-compact">
+                        <span>Lines:</span>
+                        <span id="ai-lines">0</span>
+                    </div>
+                    <div class="stat-compact">
+                        <span>APM:</span>
+                        <span id="ai-apm">0</span>
+                    </div>
+                </div>
+                
+                <div class="battle-field">
+                    <div class="hold-box">
+                        <span>HOLD</span>
+                        <canvas id="ai-hold" width="80" height="80"></canvas>
+                    </div>
+                    <canvas id="ai-canvas" width="250" height="500"></canvas>
+                    <div class="next-box">
+                        <span>NEXT</span>
+                        <canvas id="ai-next-0" width="80" height="60"></canvas>
+                        <canvas id="ai-next-1" width="60" height="45"></canvas>
+                        <canvas id="ai-next-2" width="60" height="45"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Battle Result Modal -->
+        <div id="battle-result" class="battle-result hidden">
+            <div class="result-content">
+                <h2 class="result-title">GAME OVER</h2>
+                <div class="result-winner"></div>
+                <div class="result-stats">
+                    <div class="player-final-stats"></div>
+                    <div class="ai-final-stats"></div>
+                </div>
+                <button class="rematch-button">Rematch</button>
+                <button class="menu-button">Main Menu</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="error-log"></div>
+
+    <script type="module">
+        // Error logging
+        window.addEventListener('error', (e) => {
+            const errorLog = document.getElementById('error-log');
+            const entry = document.createElement('div');
+            entry.className = 'error-entry';
+            entry.textContent = `${new Date().toLocaleTimeString()}: ${e.message} (${e.filename}:${e.lineno}:${e.colno})`;
+            errorLog.appendChild(entry);
+            console.error(e);
+        });
+
+        window.addEventListener('unhandledrejection', (e) => {
+            const errorLog = document.getElementById('error-log');
+            const entry = document.createElement('div');
+            entry.className = 'error-entry';
+            entry.textContent = `${new Date().toLocaleTimeString()}: Unhandled Promise Rejection: ${e.reason}`;
+            errorLog.appendChild(entry);
+            console.error(e);
+        });
+
+        // Import and test BattleGame
+        import { BattleGame } from './src/game/BattleGame.js';
+        
+        // Create a test instance
+        try {
+            console.log('Creating BattleGame instance...');
+            const battleGame = new BattleGame();
+            
+            console.log('Starting battle game...');
+            battleGame.start('medium');
+            
+            console.log('Battle game started successfully!');
+        } catch (error) {
+            console.error('Failed to start battle game:', error);
+            const errorLog = document.getElementById('error-log');
+            const entry = document.createElement('div');
+            entry.className = 'error-entry';
+            entry.textContent = `${new Date().toLocaleTimeString()}: Failed to start: ${error.message}`;
+            errorLog.appendChild(entry);
+        }
+    </script>
+</body>
+</html>
