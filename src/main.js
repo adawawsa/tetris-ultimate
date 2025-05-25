@@ -1,5 +1,6 @@
 import { Game } from './game/Game.js';
 import { BattleGame } from './game/BattleGame.js';
+import { TrainingGame } from './game/TrainingGame.js';
 import { SoundManager } from './audio/SoundManager.js';
 import { ParticleSystem } from './graphics/ParticleSystem.js';
 import { MenuManager } from './ui/MenuManager.js';
@@ -126,17 +127,28 @@ export class TetrisUltimate {
             document.getElementById('main-menu').classList.add('hidden');
             document.getElementById('game-container').classList.remove('hidden');
             
-            // Create game instance
-            this.game = new Game({
-                mode,
-                renderer: this.renderer,
-                soundManager: this.soundManager,
-                particleSystem: this.particleSystem,
-                inputManager: this.inputManager,
-                settingsManager: this.settingsManager,
-                networkManager: mode === 'multiplayer' ? this.networkManager : null,
-                onGameOver: (stats) => this.handleGameOver(stats)
-            });
+            // Create game instance based on mode
+            if (mode === 'training') {
+                this.game = new TrainingGame({
+                    renderer: this.renderer,
+                    soundManager: this.soundManager,
+                    particleSystem: this.particleSystem,
+                    inputManager: this.inputManager,
+                    settingsManager: this.settingsManager,
+                    onGameOver: (stats) => this.handleGameOver(stats)
+                });
+            } else {
+                this.game = new Game({
+                    mode,
+                    renderer: this.renderer,
+                    soundManager: this.soundManager,
+                    particleSystem: this.particleSystem,
+                    inputManager: this.inputManager,
+                    settingsManager: this.settingsManager,
+                    networkManager: mode === 'multiplayer' ? this.networkManager : null,
+                    onGameOver: (stats) => this.handleGameOver(stats)
+                });
+            }
             
             // Start game
             this.game.start();
