@@ -3,6 +3,7 @@ import { Board } from './Board.js';
 import { Piece } from './Piece.js';
 import { Renderer } from '../graphics/Renderer.js';
 import { AI } from '../ai/AI.js';
+import { ParticleSystem } from '../graphics/ParticleSystem.js';
 
 export class BattleGame {
     constructor() {
@@ -37,6 +38,10 @@ export class BattleGame {
         // Create renderers for both games
         this.playerRenderer = new Renderer();
         this.aiRenderer = new Renderer();
+        
+        // Create particle systems
+        this.playerParticles = new ParticleSystem();
+        this.aiParticles = new ParticleSystem();
         
         // Initialize AI
         this.ai = new AI(this.aiGame);
@@ -85,6 +90,61 @@ export class BattleGame {
         
         // Set up event listeners
         this.setupBattleEvents();
+        
+        // Override lockPiece for both games to add particle effects
+        this.setupPieceEffects();
+    }
+    
+    setupPieceEffects() {
+        // Store original lockPiece methods
+        const originalPlayerLock = this.playerGame.lockPiece.bind(this.playerGame);
+        const originalAILock = this.aiGame.lockPiece.bind(this.aiGame);
+        
+        // Override player lockPiece
+        this.playerGame.lockPiece = () => {
+            if (this.playerGame.currentPiece && this.playerParticles) {
+                const blocks = this.playerGame.currentPiece.getBlockPositions();
+                const blockSize = this.playerCanvas.width / 10;
+                
+                blocks.forEach(([x, y]) => {
+                    for (let i = 0; i < 3; i++) {
+                        this.playerParticles.addParticle({
+                            x: x * blockSize + blockSize / 2,
+                            y: y * blockSize + blockSize / 2,
+                            vx: (Math.random() - 0.5) * 2,
+                            vy: (Math.random() - 0.5) * 2,
+                            color: this.tetrisColors[this.playerGame.currentPiece.type],
+                            size: Math.random() * 4 + 2,
+                            life: 0.8
+                        });
+                    }
+                });
+            }
+            originalPlayerLock();
+        };
+        
+        // Override AI lockPiece
+        this.aiGame.lockPiece = () => {
+            if (this.aiGame.currentPiece && this.aiParticles) {
+                const blocks = this.aiGame.currentPiece.getBlockPositions();
+                const blockSize = this.aiCanvas.width / 10;
+                
+                blocks.forEach(([x, y]) => {
+                    for (let i = 0; i < 3; i++) {
+                        this.aiParticles.addParticle({
+                            x: x * blockSize + blockSize / 2,
+                            y: y * blockSize + blockSize / 2,
+                            vx: (Math.random() - 0.5) * 2,
+                            vy: (Math.random() - 0.5) * 2,
+                            color: this.tetrisColors[this.aiGame.currentPiece.type],
+                            size: Math.random() * 4 + 2,
+                            life: 0.8
+                        });
+                    }
+                });
+            }
+            originalAILock();
+        };
     }
     
     setupPlayerInput() {
@@ -182,6 +242,31 @@ export class BattleGame {
         
         let attackLines = 0;
         
+        // Create particles for line clear
+        const particleSystem = sender === 'player' ? this.playerParticles : this.aiParticles;
+        const canvas = sender === 'player' ? this.playerCanvas : this.aiCanvas;
+        
+        if (particleSystem && canvas && linesCleared.length > 0) {
+            const blockSize = canvas.width / 10;
+            
+            // Create particles for each cleared line
+            linesCleared.forEach(lineY => {
+                for (let x = 0; x < 10; x++) {
+                    for (let i = 0; i < 5; i++) {
+                        particleSystem.addParticle({
+                            x: x * blockSize + blockSize / 2,
+                            y: lineY * blockSize + blockSize / 2,
+                            vx: (Math.random() - 0.5) * 4,
+                            vy: (Math.random() - 0.5) * 4,
+                            color: this.getRandomColor(),
+                            size: Math.random() * 3 + 2,
+                            life: 1
+                        });
+                    }
+                }
+            });
+        }
+        
         // Calculate attack lines based on clear type
         switch (linesCleared.length) {
             case 1:
@@ -225,6 +310,20 @@ export class BattleGame {
             
             // Update attack display
             this.updateAttackDisplay(sender, attackLines);
+        }
+    }
+    
+    checkLineClears() {
+        // Check player line clears
+        const playerCleared = this.playerGame.board.clearLines();
+        if (playerCleared.length > 0) {
+            this.handleLinesClear('player', playerCleared);
+        }
+        
+        // Check AI line clears
+        const aiCleared = this.aiGame.board.clearLines();
+        if (aiCleared.length > 0) {
+            this.handleLinesClear('ai', aiCleared);
         }
     }
     
@@ -404,12 +503,30 @@ export class BattleGame {
         this.playerGame.update(deltaTime);
         this.aiGame.update(deltaTime);
         
+        // Update particle systems
+        this.playerParticles.update(deltaTime);
+        this.aiParticles.update(deltaTime);
+        
         // Process attacks
         this.processAttacks();
+        
+        // Check for line clears
+        this.checkLineClears();
         
         // Update battle timer
         this.battleTimer += deltaTime / 1000; // Convert to seconds
         this.updateTimerDisplay();
+        
+        // Update particle systems
+        if (this.playerParticles) {
+            this.playerParticles.update(deltaTime);
+        }
+        if (this.aiParticles) {
+            this.aiParticles.update(deltaTime);
+        }
+        
+        // Add sparkle effects for active pieces
+        this.addActiveSparkles();
         
         // Render both games
         this.render();
@@ -431,6 +548,11 @@ export class BattleGame {
                 this.basicRender(this.playerGame, this.playerCanvas, this.playerGame.ctx);
             }
             
+            // Render particles
+            if (this.playerParticles) {
+                this.playerParticles.render(this.playerGame.ctx);
+            }
+            
             // Render hold piece
             if (this.playerHoldCanvas) {
                 const holdCtx = this.playerHoldCanvas.getContext('2d');
@@ -448,6 +570,11 @@ export class BattleGame {
             } else {
                 // Basic rendering without renderer
                 this.basicRender(this.aiGame, this.aiCanvas, this.aiGame.ctx);
+            }
+            
+            // Render particles
+            if (this.aiParticles) {
+                this.aiParticles.render(this.aiGame.ctx);
             }
             
             // Render hold piece
@@ -569,6 +696,48 @@ export class BattleGame {
         return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
     }
     
+    addActiveSparkles() {
+        // Add sparkles for player's active piece
+        if (this.playerGame.currentPiece && this.playerParticles && Math.random() < 0.3) {
+            const piece = this.playerGame.currentPiece;
+            const blockSize = this.playerCanvas.width / 10;
+            const blocks = piece.getBlockPositions();
+            
+            if (blocks.length > 0) {
+                const randomBlock = blocks[Math.floor(Math.random() * blocks.length)];
+                this.playerParticles.addParticle({
+                    x: randomBlock[0] * blockSize + blockSize / 2,
+                    y: randomBlock[1] * blockSize + blockSize / 2,
+                    vx: (Math.random() - 0.5) * 0.5,
+                    vy: Math.random() * 0.5,
+                    color: this.lightenColor(this.tetrisColors[piece.type], 50),
+                    size: Math.random() * 2 + 1,
+                    life: 0.5
+                });
+            }
+        }
+        
+        // Add sparkles for AI's active piece
+        if (this.aiGame.currentPiece && this.aiParticles && Math.random() < 0.3) {
+            const piece = this.aiGame.currentPiece;
+            const blockSize = this.aiCanvas.width / 10;
+            const blocks = piece.getBlockPositions();
+            
+            if (blocks.length > 0) {
+                const randomBlock = blocks[Math.floor(Math.random() * blocks.length)];
+                this.aiParticles.addParticle({
+                    x: randomBlock[0] * blockSize + blockSize / 2,
+                    y: randomBlock[1] * blockSize + blockSize / 2,
+                    vx: (Math.random() - 0.5) * 0.5,
+                    vy: Math.random() * 0.5,
+                    color: this.lightenColor(this.tetrisColors[piece.type], 50),
+                    size: Math.random() * 2 + 1,
+                    life: 0.5
+                });
+            }
+        }
+    }
+    
     pause() {
         this.battleActive = false;
         this.playerGame.paused = true;
@@ -602,9 +771,19 @@ export class BattleGame {
         // Calculate block size
         const blockSize = canvas.width / game.board.width;
         
-        // Draw grid lines
-        ctx.strokeStyle = '#333';
-        ctx.lineWidth = 0.5;
+        // Draw background gradient
+        const bgGradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+        bgGradient.addColorStop(0, 'rgba(10, 10, 30, 0.9)');
+        bgGradient.addColorStop(1, 'rgba(5, 5, 20, 0.95)');
+        ctx.fillStyle = bgGradient;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Draw grid lines with glow
+        ctx.strokeStyle = 'rgba(0, 255, 255, 0.1)';
+        ctx.lineWidth = 1;
+        ctx.shadowBlur = 5;
+        ctx.shadowColor = 'rgba(0, 255, 255, 0.3)';
+        
         for (let x = 0; x <= game.board.width; x++) {
             ctx.beginPath();
             ctx.moveTo(x * blockSize, 0);
@@ -618,17 +797,14 @@ export class BattleGame {
             ctx.stroke();
         }
         
-        // Draw board
+        ctx.shadowBlur = 0;
+        
+        // Draw board blocks with effects
         for (let y = 0; y < game.board.height; y++) {
             for (let x = 0; x < game.board.width; x++) {
                 if (game.board.grid[y][x]) {
-                    ctx.fillStyle = this.getBlockColor(game.board.grid[y][x]);
-                    ctx.fillRect(
-                        x * blockSize + 1,
-                        y * blockSize + 1,
-                        blockSize - 2,
-                        blockSize - 2
-                    );
+                    this.drawBlock(ctx, x * blockSize, y * blockSize, blockSize, 
+                        this.getBlockColor(game.board.grid[y][x]), false);
                 }
             }
         }
@@ -637,40 +813,129 @@ export class BattleGame {
         if (game.currentPiece) {
             const ghostY = this.getGhostPosition(game);
             const piece = game.currentPiece;
-            ctx.fillStyle = piece.color + '40'; // 40 = 25% opacity
             
             for (let y = 0; y < piece.matrix.length; y++) {
                 for (let x = 0; x < piece.matrix[y].length; x++) {
                     if (piece.matrix[y][x]) {
-                        ctx.fillRect(
-                            (piece.x + x) * blockSize + 1,
-                            (ghostY + y) * blockSize + 1,
-                            blockSize - 2,
-                            blockSize - 2
-                        );
+                        this.drawGhostBlock(ctx, 
+                            (piece.x + x) * blockSize,
+                            (ghostY + y) * blockSize,
+                            blockSize, piece.color);
                     }
                 }
             }
         }
         
-        // Draw current piece
+        // Draw current piece with glow and trail effect
         if (game.currentPiece) {
             const piece = game.currentPiece;
-            ctx.fillStyle = piece.color;
             
+            // Draw trail effect (subtle motion blur)
+            if (piece.lastY !== undefined && piece.y > piece.lastY) {
+                const trailSteps = 3;
+                for (let i = 0; i < trailSteps; i++) {
+                    const alpha = 0.1 * (1 - i / trailSteps);
+                    ctx.globalAlpha = alpha;
+                    
+                    for (let y = 0; y < piece.matrix.length; y++) {
+                        for (let x = 0; x < piece.matrix[y].length; x++) {
+                            if (piece.matrix[y][x]) {
+                                const trailY = piece.lastY + (piece.y - piece.lastY) * (i / trailSteps);
+                                this.drawBlock(ctx,
+                                    (piece.x + x) * blockSize,
+                                    (trailY + y) * blockSize,
+                                    blockSize, piece.color, false);
+                            }
+                        }
+                    }
+                }
+                ctx.globalAlpha = 1;
+            }
+            
+            // Remember last position for trail
+            piece.lastY = piece.y;
+            
+            // Draw actual piece
             for (let y = 0; y < piece.matrix.length; y++) {
                 for (let x = 0; x < piece.matrix[y].length; x++) {
                     if (piece.matrix[y][x]) {
-                        ctx.fillRect(
-                            (piece.x + x) * blockSize + 1,
-                            (piece.y + y) * blockSize + 1,
-                            blockSize - 2,
-                            blockSize - 2
-                        );
+                        this.drawBlock(ctx,
+                            (piece.x + x) * blockSize,
+                            (piece.y + y) * blockSize,
+                            blockSize, piece.color, true);
                     }
                 }
             }
         }
+    }
+    
+    drawBlock(ctx, x, y, size, color, isActive) {
+        const padding = 1;
+        const blockX = x + padding;
+        const blockY = y + padding;
+        const blockSize = size - padding * 2;
+        
+        // Create gradient
+        const gradient = ctx.createLinearGradient(blockX, blockY, blockX + blockSize, blockY + blockSize);
+        gradient.addColorStop(0, this.lightenColor(color, 30));
+        gradient.addColorStop(0.5, color);
+        gradient.addColorStop(1, this.darkenColor(color, 30));
+        
+        // Add glow for active pieces
+        if (isActive) {
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = color;
+        }
+        
+        // Draw main block
+        ctx.fillStyle = gradient;
+        ctx.fillRect(blockX, blockY, blockSize, blockSize);
+        
+        // Draw inner highlight
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+        ctx.fillRect(blockX + 2, blockY + 2, blockSize - 4, 2);
+        ctx.fillRect(blockX + 2, blockY + 2, 2, blockSize - 4);
+        
+        // Draw shadow
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+        ctx.fillRect(blockX + blockSize - 2, blockY + 2, 2, blockSize - 2);
+        ctx.fillRect(blockX + 2, blockY + blockSize - 2, blockSize - 2, 2);
+        
+        // Reset shadow
+        ctx.shadowBlur = 0;
+    }
+    
+    drawGhostBlock(ctx, x, y, size, color) {
+        const padding = 1;
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2;
+        ctx.setLineDash([5, 5]);
+        ctx.globalAlpha = 0.3;
+        ctx.strokeRect(x + padding, y + padding, size - padding * 2, size - padding * 2);
+        ctx.setLineDash([]);
+        ctx.globalAlpha = 1;
+    }
+    
+    lightenColor(color, percent) {
+        const num = parseInt(color.replace("#", ""), 16);
+        const amt = Math.round(2.55 * percent);
+        const R = (num >> 16) + amt;
+        const G = (num >> 8 & 0x00FF) + amt;
+        const B = (num & 0x0000FF) + amt;
+        return "#" + (0x1000000 + (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 +
+            (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 +
+            (B < 255 ? B < 1 ? 0 : B : 255)).toString(16).slice(1);
+    }
+    
+    darkenColor(color, percent) {
+        const num = parseInt(color.replace("#", ""), 16);
+        const amt = Math.round(2.55 * percent);
+        const R = (num >> 16) - amt;
+        const G = (num >> 8 & 0x00FF) - amt;
+        const B = (num & 0x0000FF) - amt;
+        return "#" + (0x1000000 + (R > 0 ? R : 0) * 0x10000 +
+            (G > 0 ? G : 0) * 0x100 +
+            (B > 0 ? B : 0)).toString(16).slice(1);
     }
     
     getGhostPosition(game) {
@@ -700,6 +965,11 @@ export class BattleGame {
         return colors[value] || '#FFFFFF';
     }
     
+    getRandomColor() {
+        const colors = ['#00FFFF', '#FFFF00', '#800080', '#00FF00', '#FF0000', '#0000FF', '#FFA500'];
+        return colors[Math.floor(Math.random() * colors.length)];
+    }
+    
     setupResultButtons() {
         const rematchButton = document.querySelector('.rematch-button');
         const menuButton = document.querySelector('.menu-button');
@@ -722,70 +992,14 @@ export class BattleGame {
         }
     }
     
-    getColor(pieceType) {
-        const colors = {
-            0: '#00ffff', // I - Cyan
-            1: '#0000ff', // J - Blue
-            2: '#ff7f00', // L - Orange
-            3: '#ffff00', // O - Yellow
-            4: '#00ff00', // S - Green
-            5: '#ff0000', // Z - Red
-            6: '#800080'  // T - Purple
-        };
-        return colors[pieceType] || '#888888';
-    }
-    
-    basicRender(game, canvas, ctx) {
-        const blockSize = canvas.width / 10;
-        
-        // Clear canvas
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
-        // Draw grid
-        ctx.strokeStyle = '#222';
-        for (let x = 0; x <= 10; x++) {
-            ctx.beginPath();
-            ctx.moveTo(x * blockSize, 0);
-            ctx.lineTo(x * blockSize, canvas.height);
-            ctx.stroke();
-        }
-        for (let y = 0; y <= 20; y++) {
-            ctx.beginPath();
-            ctx.moveTo(0, y * blockSize);
-            ctx.lineTo(canvas.width, y * blockSize);
-            ctx.stroke();
-        }
-        
-        // Draw board
-        if (game.board && game.board.grid) {
-            for (let y = 0; y < game.board.height; y++) {
-                for (let x = 0; x < game.board.width; x++) {
-                    if (game.board.grid[y][x] !== 0) {
-                        ctx.fillStyle = this.getColor(game.board.grid[y][x] - 1);
-                        ctx.fillRect(x * blockSize, y * blockSize, blockSize - 1, blockSize - 1);
-                    }
-                }
-            }
-        }
-        
-        // Draw current piece
-        if (game.currentPiece) {
-            const piece = game.currentPiece;
-            const shape = piece.matrix;
-            ctx.fillStyle = this.getColor(piece.type);
-            
-            for (let y = 0; y < shape.length; y++) {
-                for (let x = 0; x < shape[y].length; x++) {
-                    if (shape[y][x]) {
-                        ctx.fillRect(
-                            (piece.x + x) * blockSize,
-                            (piece.y + y) * blockSize,
-                            blockSize - 1,
-                            blockSize - 1
-                        );
-                    }
-                }
-            }
-        }
-    }
+    // Define tetrisColors property for particle effects
+    tetrisColors = {
+        0: '#00ffff', // I - Cyan
+        1: '#0000ff', // J - Blue
+        2: '#ff7f00', // L - Orange
+        3: '#ffff00', // O - Yellow
+        4: '#00ff00', // S - Green
+        5: '#ff0000', // Z - Red
+        6: '#800080'  // T - Purple
+    };
 }
