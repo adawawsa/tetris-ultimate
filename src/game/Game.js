@@ -366,12 +366,16 @@ export class Game {
             if (this.soundManager) this.soundManager.playSound('perfectClear');
             this.showAction('PERFECT CLEAR!', 'perfect');
             
-            // Perfect clear effect
-            const canvas = document.getElementById('game-canvas');
-            const effect = document.createElement('div');
-            effect.className = 'perfect-clear-effect';
-            canvas.parentElement.appendChild(effect);
-            setTimeout(() => effect.remove(), 1500);
+            // Perfect clear effect (skip in battle mode)
+            if (this.mode !== 'battle-player' && this.mode !== 'battle-ai') {
+                const canvas = document.getElementById('game-canvas');
+                if (canvas && canvas.parentElement) {
+                    const effect = document.createElement('div');
+                    effect.className = 'perfect-clear-effect';
+                    canvas.parentElement.appendChild(effect);
+                    setTimeout(() => effect.remove(), 1500);
+                }
+            }
         }
         
         // Spawn next piece
@@ -393,18 +397,28 @@ export class Game {
         // Line clear animation
         lines.forEach((y, index) => {
             setTimeout(() => {
-                // Create line clear effect
-                const effect = document.createElement('div');
-                effect.className = 'line-clear-effect';
-                effect.style.top = y * 30 + 'px';
-                document.getElementById('game-canvas').parentElement.appendChild(effect);
+                // Create line clear effect (skip in battle mode)
+                if (this.mode !== 'battle-player' && this.mode !== 'battle-ai') {
+                    const canvas = document.getElementById('game-canvas');
+                    if (canvas && canvas.parentElement) {
+                        const effect = document.createElement('div');
+                        effect.className = 'line-clear-effect';
+                        effect.style.top = y * 30 + 'px';
+                        canvas.parentElement.appendChild(effect);
+                    }
+                }
                 
                 // Particles along the line
                 for (let x = 0; x < this.board.width; x++) {
                     if (this.particleSystem) this.particleSystem.createBurst(x * 30 + 15, y * 30 + 15, 'tertiary', 3);
                 }
                 
-                setTimeout(() => effect.remove(), 500);
+                if (this.mode !== 'battle-player' && this.mode !== 'battle-ai') {
+                    setTimeout(() => {
+                        const effectToRemove = document.querySelector('.line-clear-effect');
+                        if (effectToRemove) effectToRemove.remove();
+                    }, 500);
+                }
             }, index * 50);
         });
         
