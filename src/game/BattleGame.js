@@ -138,6 +138,8 @@ export class BattleGame {
     }
     
     setupCanvases() {
+        console.log('Setting up canvases...');
+        
         // Player canvases
         this.playerCanvas = document.getElementById('player-canvas');
         this.playerHoldCanvas = document.getElementById('player-hold');
@@ -155,6 +157,9 @@ export class BattleGame {
             document.getElementById('ai-next-1'),
             document.getElementById('ai-next-2')
         ];
+        
+        console.log('Player canvas found:', !!this.playerCanvas);
+        console.log('AI canvas found:', !!this.aiCanvas);
         
         // Set up contexts
         if (this.playerCanvas) {
@@ -372,37 +377,38 @@ export class BattleGame {
         this.setupResultButtons();
         
         console.log('Starting player game...');
-        // Start both games
-        this.playerGame.start();
+        // Start both games - but don't start their individual loops
+        this.playerGame.spawnPiece();
         
         console.log('Starting AI game...');
-        this.aiGame.start();
+        this.aiGame.spawnPiece();
         
         this.battleActive = true;
         this.battleTimer = 0;
+        this.lastTime = performance.now();
         
         console.log('Starting game loop...');
         // Start game loop
         this.gameLoop();
     }
     
-    gameLoop() {
+    gameLoop(timestamp) {
         if (!this.battleActive) return;
         
-        // Update games
-        this.playerGame.update();
-        this.aiGame.update();
+        // Calculate delta time
+        if (!timestamp) timestamp = performance.now();
+        const deltaTime = timestamp - this.lastTime;
+        this.lastTime = timestamp;
         
-        // AI makes moves
-        if (this.aiGame.currentPiece) {
-            this.ai.makeMove();
-        }
+        // Update both games
+        this.playerGame.update(deltaTime);
+        this.aiGame.update(deltaTime);
         
         // Process attacks
         this.processAttacks();
         
         // Update battle timer
-        this.battleTimer += 1/60; // Assuming 60 FPS
+        this.battleTimer += deltaTime / 1000; // Convert to seconds
         this.updateTimerDisplay();
         
         // Render both games
@@ -412,7 +418,7 @@ export class BattleGame {
         this.updateStatsDisplay();
         
         // Continue loop
-        requestAnimationFrame(() => this.gameLoop());
+        requestAnimationFrame((t) => this.gameLoop(t));
     }
     
     render() {

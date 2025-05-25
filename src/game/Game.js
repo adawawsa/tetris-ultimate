@@ -104,6 +104,9 @@ export class Game {
     }
     
     update(deltaTime) {
+        // Ensure deltaTime is valid
+        if (!deltaTime || deltaTime <= 0) deltaTime = 16.67; // Default to 60 FPS
+        
         // Update stats
         this.stats.update(deltaTime);
         
@@ -115,6 +118,16 @@ export class Game {
         // Gravity
         this.dropTimer += deltaTime;
         const dropInterval = this.getDropInterval();
+        
+        // Debug logging - remove later
+        if (this.dropTimer % 1000 < deltaTime) { // Log every second
+            console.log('Drop debug:', {
+                dropTimer: this.dropTimer,
+                dropInterval: dropInterval,
+                deltaTime: deltaTime,
+                currentPiece: this.currentPiece ? this.currentPiece.type : 'none'
+            });
+        }
         
         if (this.dropTimer >= dropInterval) {
             this.dropTimer = 0;

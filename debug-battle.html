@@ -112,6 +112,18 @@
                     if (battleGame.aiGame) {
                         log(`AI current piece: ${battleGame.aiGame.currentPiece ? battleGame.aiGame.currentPiece.type : 'None'}`);
                     }
+                    
+                    // Check canvas setup
+                    log(`Player canvas: ${battleGame.playerCanvas ? 'OK' : 'Missing'}`);
+                    log(`AI canvas: ${battleGame.aiCanvas ? 'OK' : 'Missing'}`);
+                    
+                    // Force render test
+                    if (battleGame.playerCanvas) {
+                        const ctx = battleGame.playerCanvas.getContext('2d');
+                        ctx.fillStyle = '#FF0000';
+                        ctx.fillRect(10, 10, 50, 50);
+                        log('Drew red square on player canvas');
+                    }
                 }, 1000);
                 
             } catch (error) {
