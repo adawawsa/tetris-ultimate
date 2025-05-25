@@ -22,8 +22,8 @@ export class Game {
         this.heldPiece = null;
         this.canHold = true;
         
-        this.isPaused = false;
-        this.isGameOver = false;
+        this.paused = false;
+        this.gameOver = false;
         this.dropTimer = 0;
         this.lockTimer = 0;
         this.lockDelay = 500;
@@ -54,7 +54,9 @@ export class Game {
     }
     
     start() {
+        console.log('Game.start called');
         this.spawnPiece();
+        console.log('Piece spawned:', this.currentPiece);
         this.render();
         this.gameLoop();
     }
@@ -64,21 +66,21 @@ export class Game {
         
         // Keyboard controls
         this.inputManager.on('keydown', (action) => {
-            if (!this.isPaused && !this.isGameOver && this.inputHandlers[action]) {
+            if (!this.paused && !this.gameOver && this.inputHandlers[action]) {
                 this.inputHandlers[action]();
             }
         });
         
         // Touch controls
         this.inputManager.on('touch', (action) => {
-            if (!this.isPaused && !this.isGameOver && this.inputHandlers[action]) {
+            if (!this.paused && !this.gameOver && this.inputHandlers[action]) {
                 this.inputHandlers[action]();
             }
         });
         
         // Auto-repeat for movement
         this.inputManager.on('keyhold', (action) => {
-            if (!this.isPaused && !this.isGameOver) {
+            if (!this.paused && !this.gameOver) {
                 if (action === 'moveLeft' || action === 'moveRight' || action === 'softDrop') {
                     this.inputHandlers[action]();
                 }
@@ -87,12 +89,12 @@ export class Game {
     }
     
     gameLoop(timestamp = 0) {
-        if (this.isGameOver) return;
+        if (this.gameOver) return;
         
         const deltaTime = timestamp - this.lastFrame;
         this.lastFrame = timestamp;
         
-        if (!this.isPaused) {
+        if (!this.paused) {
             this.gameTime += deltaTime;
             this.update(deltaTime);
             this.render();
@@ -596,7 +598,7 @@ export class Game {
     }
     
     gameOver() {
-        this.isGameOver = true;
+        this.gameOver = true;
         if (this.soundManager) this.soundManager.playSound('gameOver');
         
         // Game over effect

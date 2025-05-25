@@ -169,13 +169,7 @@ export class BattleGame {
     }
     
     setupBattleEvents() {
-        // Listen for line clears from both games
-        this.playerGame.onLinesClear = (lines) => this.handleLinesClear('player', lines);
-        this.aiGame.onLinesClear = (lines) => this.handleLinesClear('ai', lines);
-        
-        // Listen for game over
-        this.playerGame.onGameOver = () => this.handleGameOver('ai');
-        this.aiGame.onGameOver = () => this.handleGameOver('player');
+        // Nothing here for now - we'll handle events differently
     }
     
     handleLinesClear(sender, linesCleared) {
@@ -357,6 +351,8 @@ export class BattleGame {
     }
     
     start(difficulty = 'medium') {
+        console.log('BattleGame.start called with difficulty:', difficulty);
+        
         // Set AI difficulty
         this.ai.setDifficulty(difficulty);
         
@@ -375,13 +371,17 @@ export class BattleGame {
         // Set up result buttons
         this.setupResultButtons();
         
+        console.log('Starting player game...');
         // Start both games
         this.playerGame.start();
+        
+        console.log('Starting AI game...');
         this.aiGame.start();
         
         this.battleActive = true;
         this.battleTimer = 0;
         
+        console.log('Starting game loop...');
         // Start game loop
         this.gameLoop();
     }
